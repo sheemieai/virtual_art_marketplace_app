@@ -26,7 +26,7 @@ class MyApp extends StatelessWidget {
   final List<Widget> pages = [
     LoginInPage(),
     ChatsPage(),
-    ChatRoomPage(),
+    ChatRoomPage(chatRoomName: '',),
     UploadArtPage(),
     DisplayArtPage(),
     FavoriteArtPage(),
@@ -43,7 +43,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.deepPurple,
       ),
-      home: pages[7],
+      home: pages[0],
     );
   }
 }
