@@ -9,6 +9,7 @@ import 'package:virtual_marketplace_app/pages/main_page/main_page.dart';
 import 'package:virtual_marketplace_app/pages/my_art_page/my_art_page.dart';
 import 'package:virtual_marketplace_app/pages/payment_page/payment_page.dart';
 import 'package:virtual_marketplace_app/pages/payment_page/shopping_cart/shopping_cart_page.dart';
+import 'package:virtual_marketplace_app/pages/settings_page/settings_page.dart';
 import 'pages/login_page/login_page.dart';
 import 'firebase_options.dart';
 
@@ -24,16 +25,17 @@ void main() async {
 class MyApp extends StatelessWidget {
   // List of pages
   final List<Widget> pages = [
-    LoginInPage(),
-    ChatsPage(),
-    ChatRoomPage(chatRoomName: '',),
-    UploadArtPage(),
-    DisplayArtPage(),
-    FavoriteArtPage(),
-    MainPage(),
-    MyArtPage(),
-    ShoppingCartPage(),
-    PaymentPage(),
+    LoginPage(), // 0
+    ChatsPage(), // 1
+    ChatRoomPage(chatRoomName: '',), // 2
+    UploadArtPage(), // 3
+    DisplayArtPage(), // 4
+    FavoriteArtPage(), // 5
+    MainPage(),  // 6
+    MyArtPage(), // 7
+    ShoppingCartPage(), // 8
+    PaymentPage(), // 9
+    SettingsPage(), // 10
   ];
 
   @override

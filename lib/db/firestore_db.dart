@@ -136,6 +136,12 @@ class FirebaseDb {
     }
   }
 
+  // Check if an user is in Firestore
+  Future<bool> checkIfUserExists(final String userId) async {
+    final userDoc = await firestore.collection("users").doc(userId).get();
+    return userDoc.exists;
+  }
+
   /**
    * Purchase Art Model Methods
    */

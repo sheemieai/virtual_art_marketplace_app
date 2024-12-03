@@ -45,4 +45,20 @@ class UserModel {
       "registrationDatetime": registrationDatetime,
     };
   }
+
+  // Copy UserModel with new settings fields.
+  UserModel copyWithNewSettingsFields({
+    String? userName,
+    String? userPictureUri,
+  }) {
+    return UserModel(
+      id: id,
+      userId: userId,
+      userEmail: userEmail,
+      userName: userName ?? this.userName,
+      userMoney: userMoney,
+      userPictureUri: userPictureUri ?? this.userPictureUri,
+      registrationDatetime: registrationDatetime,
+    );
+  }
 }
