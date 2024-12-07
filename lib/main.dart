@@ -10,6 +10,7 @@ import 'package:virtual_marketplace_app/pages/my_art_page/my_art_page.dart';
 import 'package:virtual_marketplace_app/pages/payment_page/payment_page.dart';
 import 'package:virtual_marketplace_app/pages/payment_page/shopping_cart/shopping_cart_page.dart';
 import 'package:virtual_marketplace_app/pages/settings_page/settings_page.dart';
+import 'models/user_model/user_model.dart';
 import 'pages/login_page/login_page.dart';
 import 'firebase_options.dart';
 
@@ -23,6 +24,7 @@ void main() async {
 }
 
 class MyApp extends StatelessWidget {
+
   // List of pages
   final List<Widget> pages = [
     LoginPage(), // 0
@@ -31,11 +33,21 @@ class MyApp extends StatelessWidget {
     UploadArtPage(), // 3
     DisplayArtPage(), // 4
     FavoriteArtPage(), // 5
-    MainPage(),  // 6
-    MyArtPage(), // 7
-    ShoppingCartPage(), // 8
-    PaymentPage(), // 9
-    SettingsPage(), // 10
+    MyArtPage(
+      // fake user for testing
+      loggedInUser: UserModel(
+        id: "1",
+        userId: 123,
+        userEmail: "testuser@example.com",
+        userName: "Test User",
+        userMoney: "500",
+        userPictureUri: "lib/img/user_pic/default.png",
+        registrationDatetime: DateTime.now(),
+      ),
+    ), // 6
+    ShoppingCartPage(), // 7
+    PaymentPage(), // 8
+    SettingsPage(), // 9
   ];
 
   @override
@@ -45,7 +57,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.deepPurple,
       ),
-      home: pages[0],
+      home: pages[6],
     );
   }
 }

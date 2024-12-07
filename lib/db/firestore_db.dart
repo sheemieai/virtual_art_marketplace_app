@@ -419,4 +419,34 @@ class FirebaseDb {
       return [];
     }
   }
+
+  /**
+   * Chat Room Methods
+   */
+
+  // Get Pixabay API Key
+  Future<String> fetchPixabayApiKey() async {
+    try {
+      final DocumentSnapshot documentSnapshot = await FirebaseFirestore.instance
+          .collection("apiKey")
+          .doc("4eMcp4Z0JlSk5Gncb7HH")
+          .get();
+
+      if (documentSnapshot.exists) {
+        final data = documentSnapshot.data() as Map<String, dynamic>;
+        final apiKey = data["pixabay"];
+
+        if (apiKey != null && apiKey is String) {
+          return apiKey;
+        } else {
+          throw Exception("Pixabay API key not found in the document.");
+        }
+      } else {
+        throw Exception("Document not found in Firestore.");
+      }
+    } catch (e) {
+      print("Error fetching Pixabay API key: $e");
+      throw Exception("Failed to fetch Pixabay API key.");
+    }
+  }
 }
