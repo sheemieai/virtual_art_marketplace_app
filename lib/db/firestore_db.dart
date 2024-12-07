@@ -421,7 +421,7 @@ class FirebaseDb {
   }
 
   /**
-   * Chat Room Methods
+   * API Methods
    */
 
   // Get Pixabay API Key
