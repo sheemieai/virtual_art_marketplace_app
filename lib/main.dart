@@ -32,7 +32,17 @@ class MyApp extends StatelessWidget {
     ChatRoomPage(chatRoomName: '',), // 2
     UploadArtPage(), // 3
     DisplayArtPage(), // 4
-    FavoriteArtPage(), // 5
+    FavoriteArtPage(
+      // fake user for testing
+      loggedInUser: UserModel(
+        id: "1",
+        userId: 123,
+        userEmail: "testuser@example.com",
+        userName: "Test User",
+        userMoney: "500",
+        userPictureUri: "lib/img/user_pic/default.png",
+        registrationDatetime: DateTime.now(),
+      ),), // 5
     MyArtPage(
       // fake user for testing
       loggedInUser: UserModel(
@@ -48,6 +58,7 @@ class MyApp extends StatelessWidget {
     ShoppingCartPage(), // 7
     PaymentPage(), // 8
     SettingsPage(), // 9
+    MainPage(), // 10
   ];
 
   @override

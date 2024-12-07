@@ -79,15 +79,17 @@ class MyArtPageState extends State<MyArtPage> {
                 );
               },
             ),
-            ListTile(
-              leading: const Icon(Icons.favorite),
-              title: const Text("Favorites"),
+            const ListTile(
+              leading: Icon(Icons.favorite),
+              title: Text("Favorites"),
+              /**
               onTap: () {
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(builder: (context) => FavoriteArtPage()),
                 );
               },
+                  */
             ),
             ListTile(
               leading: const Icon(Icons.shopping_cart),

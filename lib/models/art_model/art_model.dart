@@ -53,67 +53,80 @@ class ArtModel {
     };
   }
 
-  // Create 10 Art Models in a list with a fake user
+  // Create 50 Art Models in a list with a fake user for testing
   static Future<List<ArtModel>> fetchArtModelsFromPixabay(final String apiKey) async {
-    final url =
-        "https://pixabay.com/api/?key=$apiKey&q=art&image_type=photo&per_page=30";
+    final List<String> artTypes = ["photo", "painting", "photography", "sculpture", "digital"];
+    final List<ArtModel> allArtModels = [];
 
-    print("Fetching data from Pixabay API...");
-    print("API URL: $url");
+    print("Fetching data for multiple art types from Pixabay API...");
 
-    try {
-      final response = await http.get(Uri.parse(url));
+    for (final artType in artTypes) {
+      final url =
+          "https://pixabay.com/api/?key=$apiKey&q=$artType&image_type=photo&per_page=10";
 
-      if (response.statusCode == 200) {
-        print("Response received. Status Code: ${response.statusCode}");
-        final data = json.decode(response.body);
-        if (data == null || !data.containsKey("hits")) {
-          throw Exception("Unexpected response format or missing 'hits' key");
+      print("Fetching data for art type: $artType");
+      print("API URL: $url");
+
+      try {
+        final response = await http.get(Uri.parse(url));
+
+        if (response.statusCode == 200) {
+          print("Response received for $artType. Status Code: ${response.statusCode}");
+          final data = json.decode(response.body);
+          if (data == null || !data.containsKey("hits")) {
+            throw Exception("Unexpected response format or missing 'hits' key for $artType");
+          }
+
+          final List hits = data["hits"];
+          print("Number of results for $artType: ${hits.length}");
+
+          final List<ArtModel> artModels = hits.map<ArtModel>((item) {
+            print("Processing item with ID: ${item["id"]}");
+
+            final artId = item["id"];
+            final artWorkPictureUri = item["webformatURL"];
+            final artWorkName = item["tags"].split(",").first;
+            final artDimensions = "${item["imageWidth"]}x${item["imageHeight"]}";
+            final artPrice = "\$${(artId % 50 + 10).toString()}";
+
+            final artWorkCreator = UserModel(
+              id: "creator-$artId",
+              userId: artId,
+              userEmail: "artist$artId@example.com",
+              userName: "Artist $artId",
+              userMoney: "0",
+              userPictureUri: "lib/img/user_pic/default.png",
+              registrationDatetime: DateTime.now(),
+            );
+
+            return ArtModel(
+              id: "art-$artId",
+              artId: artId,
+              artWorkPictureUri: artWorkPictureUri,
+              artWorkName: artWorkName,
+              artWorkCreator: artWorkCreator,
+              artDimensions: artDimensions,
+              artPrice: artPrice,
+              artType: capitalize(artType),
+            );
+          }).toList();
+
+          allArtModels.addAll(artModels);
+        } else {
+          print("Failed to fetch data for $artType. Status Code: ${response.statusCode}");
+          print("Response Body: ${response.body}");
         }
-
-        final List hits = data["hits"];
-        print("Number of results: ${hits.length}");
-
-        return hits.map<ArtModel>((item) {
-          print("Processing item with ID: ${item["id"]}");
-
-          final artId = item["id"];
-          final artWorkPictureUri = item["webformatURL"];
-          final artWorkName = item["tags"].split(",").first;
-          final artDimensions = "${item["imageWidth"]}x${item["imageHeight"]}";
-          final artPrice = "\$${(artId % 50 + 10).toString()}";
-          final artType = "Photo";
-
-          // placeholder users
-          final artWorkCreator = UserModel(
-            id: "creator-$artId",
-            userId: artId,
-            userEmail: "artist$artId@example.com",
-            userName: "Artist $artId",
-            userMoney: "0",
-            userPictureUri: "lib/img/user_pic/default.png",
-            registrationDatetime: DateTime.now(),
-          );
-
-          return ArtModel(
-            id: "art-$artId",
-            artId: artId,
-            artWorkPictureUri: artWorkPictureUri,
-            artWorkName: artWorkName,
-            artWorkCreator: artWorkCreator,
-            artDimensions: artDimensions,
-            artPrice: artPrice,
-            artType: artType,
-          );
-        }).toList();
-      } else {
-        print("Failed to fetch data. Status Code: ${response.statusCode}");
-        print("Response Body: ${response.body}");
-        throw Exception("Failed to load images from Pixabay");
+      } catch (e) {
+        print("Error during Pixabay API fetch for $artType: $e");
       }
-    } catch (e) {
-      print("Error during Pixabay API fetch: $e");
-      throw Exception("Error fetching art models: $e");
     }
+
+    print("Total art models fetched: ${allArtModels.length}");
+    return allArtModels;
+  }
+
+  static String capitalize(String text) {
+    if (text.isEmpty) return text;
+    return text[0].toUpperCase() + text.substring(1);
   }
 }
