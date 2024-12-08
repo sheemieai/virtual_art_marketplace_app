@@ -5,6 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:virtual_marketplace_app/pages/main_page/main_page.dart';
 import '../../auth/auth_service.dart';
 import '../../db/firestore_db.dart';
+import '../../helper/fake/fake_user_creator_helper.dart';
+import '../../models/art_model/art_model.dart';
+import '../../models/user_model/user_model.dart';
 import '../settings_page/settings_page.dart';
 
 class LoginPage extends StatefulWidget {
@@ -48,6 +51,23 @@ class LoginPageState extends State<LoginPage> {
     emailController.dispose();
     passwordController.dispose();
     super.dispose();
+  }
+
+  Future<void> createAndStoreFakeData() async {
+    try {
+      final List<UserModel> fakeUsers = FakeUserCreatorHelper.generateUserModels(5);
+
+      final String apiKey = await firebaseDb.fetchPixabayApiKey();
+
+      final Map<UserModel, List<ArtModel>> userArtMap =
+      await FakeUserCreatorHelper.generateArtModelsForUsers(fakeUsers, apiKey);
+
+      await firebaseDb.storeFakeUsersAndArtModels(fakeUsers, userArtMap);
+
+      print("Fake users and art models stored successfully!");
+    } catch (e) {
+      print("Error creating and storing fake data: $e");
+    }
   }
 
   void startImageRotation() {
@@ -251,6 +271,18 @@ class LoginPageState extends State<LoginPage> {
               alertMessage,
               style: TextStyle(color: Colors.red),
             ),
+
+            /**
+            // Create and Store Fake Data Button
+            ElevatedButton(
+              onPressed: createAndStoreFakeData,
+              style: ElevatedButton.styleFrom(
+                foregroundColor: Colors.white,
+                backgroundColor: Colors.deepPurple,
+              ),
+              child: const Text("Generate and Store Fake Data"),
+            ),
+            */
           ],
         ),
       ),

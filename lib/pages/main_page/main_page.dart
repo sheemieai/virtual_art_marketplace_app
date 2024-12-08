@@ -32,8 +32,9 @@ class MainPageState extends State<MainPage> {
 
   Future<void> fetchArtData() async {
     try {
-      final apiKey = await firestoreDb.fetchPixabayApiKey();
-      final fetchedArtModels = await ArtModel.fetchArtModelsFromPixabay(apiKey);
+      //final apiKey = await firestoreDb.fetchPixabayApiKey();
+      //final fetchedArtModels = await ArtModel.fetchArtModelsFromPixabay(apiKey);
+      final fetchedArtModels = await firestoreDb.getAllArts();
       setState(() {
         artModels = fetchedArtModels;
         randomArtModel = artModels.isNotEmpty

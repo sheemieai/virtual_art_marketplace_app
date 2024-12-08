@@ -29,13 +29,17 @@ class MyArtPageState extends State<MyArtPage> {
   @override
   void initState() {
     super.initState();
+
     fetchArtData();
   }
 
   Future<void> fetchArtData() async {
     try {
-      final apiKey = await firestoreDb.fetchPixabayApiKey();
-      final fetchedArtModels = await ArtModel.fetchArtModelsFromPixabay(apiKey);
+      //final apiKey = await firestoreDb.fetchPixabayApiKey();
+      //final fetchedArtModels = await ArtModel.fetchArtModelsFromPixabay(apiKey);
+      final int userId = widget.loggedInUser.userId;
+      final List<ArtModel> fetchedArtModels = await firestoreDb.getAllArtsByUserId(userId);
+
       setState(() {
         artModels = fetchedArtModels;
         if (artModels.isNotEmpty) {

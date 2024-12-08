@@ -280,6 +280,25 @@ class FirebaseDb {
     }
   }
 
+  // Get all ArtModels for a specific User
+  Future<List<ArtModel>> getAllArtsByUserId(final int userId) async {
+    try {
+      QuerySnapshot querySnapshot = await artCollection
+          .where("artWorkCreator.userId", isEqualTo: userId)
+          .get();
+
+      return querySnapshot.docs
+          .map((doc) => ArtModel.fromFirestore(
+        doc.data() as Map<String, dynamic>,
+        doc.id,
+      ))
+          .toList();
+    } catch (e) {
+      print("Error fetching arts for userId $userId: $e");
+      return [];
+    }
+  }
+
   /**
    * Chat Page Methods
    */
@@ -447,6 +466,34 @@ class FirebaseDb {
     } catch (e) {
       print("Error fetching Pixabay API key: $e");
       throw Exception("Failed to fetch Pixabay API key.");
+    }
+  }
+
+  // Store Fake Users with multiple Fake ArtModels
+  Future<void> storeFakeUsersAndArtModels(
+      final List<UserModel> userModels, final Map<UserModel, List<ArtModel>> userArtMap) async {
+    final WriteBatch batch = firestore.batch();
+
+    try {
+      // Store Fake UserModels
+      for (final user in userModels) {
+        final userDoc = usersCollection.doc(user.id);
+        batch.set(userDoc, user.toFirestore());
+      }
+
+      // Store Fake ArtModels
+      userArtMap.forEach((user, artList) {
+        for (final art in artList) {
+          final artDoc = artCollection.doc(art.id);
+          batch.set(artDoc, art.toFirestore());
+        }
+      });
+
+      await batch.commit();
+      print("Users and ArtModels stored successfully!");
+    } catch (e) {
+      print("Error storing users and art models: $e");
+      throw Exception("Failed to store users and art models.");
     }
   }
 }
