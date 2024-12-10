@@ -8,6 +8,7 @@ import 'package:virtual_marketplace_app/pages/login_page/login_page.dart';
 import 'package:virtual_marketplace_app/pages/main_page/main_page.dart';
 import 'package:virtual_marketplace_app/pages/my_art_page/my_art_page.dart';
 import 'package:virtual_marketplace_app/pages/payment_page/shopping_cart/shopping_cart_page.dart';
+import '../display_art_page/display_art_page.dart';
 
 class FavoriteArtPage extends StatefulWidget {
   final UserModel loggedInUser;
@@ -34,8 +35,10 @@ class FavoriteArtPageState extends State<FavoriteArtPage> {
 
   Future<void> fetchFavoriteArtData() async {
     try {
-      final apiKey = await firestoreDb.fetchPixabayApiKey();
-      final fetchedArtModels = await ArtModel.fetchArtModelsFromPixabay(apiKey);
+      //final apiKey = await firestoreDb.fetchPixabayApiKey();
+      //final fetchedArtModels = await ArtModel.fetchArtModelsFromPixabay(apiKey);
+      final int userId = widget.loggedInUser.userId;
+      final List<ArtModel> fetchedArtModels = await firestoreDb.getAllFavoriteArtsByUserId(userId);
       setState(() {
         favoriteArtModels = fetchedArtModels;
         filteredArtModels = fetchedArtModels;
@@ -81,16 +84,19 @@ class FavoriteArtPageState extends State<FavoriteArtPage> {
               leading: const Icon(Icons.home),
               title: const Text("Home"),
               onTap: () {
+                /*
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(builder: (context) => const MainPage()),
                 );
+
+                 */
               },
             ),
             const ListTile(
               leading: Icon(Icons.palette),
               title: Text("My Art"),
-              /**
+              /*
               onTap: () {
                 Navigator.pushReplacement(
                   context,
@@ -177,38 +183,50 @@ class FavoriteArtPageState extends State<FavoriteArtPage> {
                 itemCount: filteredArtModels.length,
                 itemBuilder: (context, index) {
                   final artModel = filteredArtModels[index];
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        height: 200,
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.grey),
-                          borderRadius: BorderRadius.circular(8.0),
-                          image: DecorationImage(
-                            image: NetworkImage(artModel.artWorkPictureUri),
-                            fit: BoxFit.cover,
+                  return GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => DisplayArtPage(
+                            passedArtModel: artModel,
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 8.0),
-                      Text(
-                        artModel.artWorkName,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
+                      );
+                    },
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          height: 200,
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.grey),
+                            borderRadius: BorderRadius.circular(8.0),
+                            image: DecorationImage(
+                              image: AssetImage(artModel.artWorkPictureUri),
+                              fit: BoxFit.cover,
+                            ),
+                          ),
                         ),
-                      ),
-                      Text(
-                        artModel.artPrice,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          color: Colors.grey,
+                        const SizedBox(height: 8.0),
+                        Text(
+                          artModel.artWorkName,
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      ),
-                      const Divider(height: 32.0),
-                    ],
+                        Text(
+                          artModel.artPrice,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            color: Colors.grey,
+                          ),
+                        ),
+                        const Divider(height: 32.0),
+                      ],
+                    ),
                   );
                 },
               ),

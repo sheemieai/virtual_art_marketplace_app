@@ -2,13 +2,17 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:virtual_marketplace_app/db/firestore_db.dart';
 import 'package:virtual_marketplace_app/models/art_model/art_model.dart';
+import 'package:virtual_marketplace_app/models/user_model/user_model.dart';
 import '../chat_page/chat_page.dart';
+import '../display_art_page/display_art_page.dart';
 import '../display_art_page/upload_art_page/upload_art_page.dart';
 import '../login_page/login_page.dart';
 import '../payment_page/shopping_cart/shopping_cart_page.dart';
 
 class MainPage extends StatefulWidget {
-  const MainPage({super.key});
+  final UserModel loggedInUser;
+
+  const MainPage({super.key, required this.loggedInUser});
 
   @override
   State<MainPage> createState() => MainPageState();
@@ -57,6 +61,25 @@ class MainPageState extends State<MainPage> {
           .where((art) => art.artType == artType)
           .take(15)
           .toList();
+    }
+  }
+
+  Future<void> toggleFavorite(ArtModel artModel) async {
+    final userId = widget.loggedInUser.userId;
+
+    setState(() {
+      if (artModel.artFavoriteStatusUserList.contains(userId)) {
+        artModel.artFavoriteStatusUserList.remove(userId);
+      } else {
+        artModel.artFavoriteStatusUserList.add(userId);
+      }
+    });
+
+    try {
+      await firestoreDb.updateFavoriteArt(artModel);
+      print("Favorite status updated for art: ${artModel.id}");
+    } catch (e) {
+      print("Error updating favorite status: $e");
     }
   }
 
@@ -170,7 +193,7 @@ class MainPageState extends State<MainPage> {
                 borderRadius: BorderRadius.circular(8.0),
                 image: randomArtModel != null
                     ? DecorationImage(
-                  image: NetworkImage(randomArtModel!.artWorkPictureUri),
+                  image: AssetImage(randomArtModel!.artWorkPictureUri),
                   fit: BoxFit.cover,
                 )
                     : null,
@@ -195,7 +218,7 @@ class MainPageState extends State<MainPage> {
     );
   }
 
-  Widget buildArtTypeSection(String artType) {
+  Widget buildArtTypeSection(final String artType) {
     final artList = categorizedArt[artType] ?? [];
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -209,23 +232,63 @@ class MainPageState extends State<MainPage> {
         ),
         const SizedBox(height: 8.0),
         SizedBox(
-          height: 200,
+          height: 250,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             itemCount: artList.length,
             itemBuilder: (context, index) {
               final artModel = artList[index];
+              final isFavorited = artModel.artFavoriteStatusUserList.contains(widget.loggedInUser.userId);
               return Padding(
                 padding: const EdgeInsets.only(right: 10.0),
-                child: Container(
-                  width: 150,
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey),
-                    borderRadius: BorderRadius.circular(8.0),
-                    image: DecorationImage(
-                      image: NetworkImage(artModel.artWorkPictureUri),
-                      fit: BoxFit.cover,
-                    ),
+                child: GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => DisplayArtPage(
+                          passedArtModel: artModel,
+                        ),
+                      ),
+                    );
+                  },
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        width: 150,
+                        height: 150,
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey),
+                          borderRadius: BorderRadius.circular(8.0),
+                          image: DecorationImage(
+                            image: AssetImage(artModel.artWorkPictureUri),
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8.0),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            artModel.artPrice,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
+                          ),
+                          IconButton(
+                            onPressed: () => toggleFavorite(artModel),
+                            icon: Icon(
+                              Icons.favorite,
+                              color: isFavorited ? Colors.red : Colors.grey,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
               );

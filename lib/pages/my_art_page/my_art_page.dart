@@ -77,16 +77,18 @@ class MyArtPageState extends State<MyArtPage> {
               leading: const Icon(Icons.home),
               title: const Text("Home"),
               onTap: () {
+                /*
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(builder: (context) => MainPage()),
                 );
+                 */
               },
             ),
             const ListTile(
               leading: Icon(Icons.favorite),
               title: Text("Favorites"),
-              /**
+              /*
               onTap: () {
                 Navigator.pushReplacement(
                   context,
@@ -163,7 +165,7 @@ class MyArtPageState extends State<MyArtPage> {
                 color: Colors.grey[400],
                 image: randomArtModel != null
                     ? DecorationImage(
-                  image: NetworkImage(
+                  image: AssetImage(
                     randomArtModel!.artWorkPictureUri,
                   ),
                   fit: BoxFit.cover,
@@ -208,8 +210,7 @@ class MyArtPageState extends State<MyArtPage> {
                       border: Border.all(color: Colors.grey),
                       borderRadius: BorderRadius.circular(8.0),
                       image: DecorationImage(
-                        image:
-                        NetworkImage(artModel.artWorkPictureUri),
+                        image: AssetImage(artModel.artWorkPictureUri),
                         fit: BoxFit.cover,
                       ),
                     ),

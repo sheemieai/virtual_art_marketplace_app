@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../models/art_model/art_model.dart';
 import '../models/chat_model/chat_page_model.dart';
 import '../models/chat_model/chat_room_model.dart';
@@ -494,6 +495,114 @@ class FirebaseDb {
     } catch (e) {
       print("Error storing users and art models: $e");
       throw Exception("Failed to store users and art models.");
+    }
+  }
+
+  // Fetch all Fake Users
+  Future<Map<UserModel, List<ArtModel>>> getAllFakeUsers() async {
+    try {
+      QuerySnapshot userSnapshot = await usersCollection
+          .where("userId", isGreaterThanOrEqualTo: 999000)
+          .get();
+
+      final List<UserModel> fakeUsers = userSnapshot.docs.map((doc) {
+        final data = doc.data() as Map<String, dynamic>;
+        return UserModel.fromFirestore(data, doc.id);
+      }).toList();
+
+      final Map<UserModel, List<ArtModel>> userArtMap = {};
+
+      for (final user in fakeUsers) {
+        QuerySnapshot artSnapshot = await artCollection
+            .where("artWorkCreator.userId", isEqualTo: user.userId)
+            .get();
+
+        final List<ArtModel> userArts = artSnapshot.docs.map((doc) {
+          final data = doc.data() as Map<String, dynamic>;
+          return ArtModel.fromFirestore(data, doc.id);
+        }).toList();
+
+        userArtMap[user] = userArts;
+      }
+
+      return userArtMap;
+    } catch (e) {
+      print("Error fetching fake users and their art models: $e");
+      return {};
+    }
+  }
+
+  // Remove artFavoriteStatus field from artModels
+  Future<void> removeArtFavoriteStatusField() async {
+    try {
+      final QuerySnapshot querySnapshot = await FirebaseFirestore.instance.collection("arts").get();
+
+      final WriteBatch batch = FirebaseFirestore.instance.batch();
+
+      for (final QueryDocumentSnapshot doc in querySnapshot.docs) {
+        batch.update(doc.reference, {"artFavoriteStatus": FieldValue.delete()});
+      }
+
+      await batch.commit();
+      print("Successfully removed 'artFavoriteStatus' from all documents.");
+    } catch (e) {
+      print("Error removing 'artFavoriteStatus' field: $e");
+    }
+  }
+
+  /**
+   * Favorite Art Methods
+   */
+
+  // Add a new favorite ArtModel
+  Future<void> addFavoriteArt(final ArtModel favoriteArt) async {
+    try {
+      await artCollection.doc(favoriteArt.id).set(favoriteArt.toFirestore());
+      print("Favorite art added successfully.");
+    } catch (e) {
+      print("Error adding favorite arts: $e");
+      throw Exception("Failed to add favorite arts.");
+    }
+  }
+
+  // Update an existing favorite ArtModel
+  Future<void> updateFavoriteArt(final ArtModel favoriteArt) async {
+    try {
+      await artCollection.doc(favoriteArt.id).update(favoriteArt.toFirestore());
+      print("Favorite art updated successfully.");
+    } catch (e) {
+      print("Error updating favorite arts: $e");
+      throw Exception("Failed to update favorite arts.");
+    }
+  }
+
+  // Delete an favorite ArtModel
+  Future<void> deleteFavoriteArt(final String id) async {
+    try {
+      await artCollection.doc(id).delete();
+      print("Favorite art deleted successfully.");
+    } catch (e) {
+      print("Error deleting favorite arts: $e");
+      throw Exception("Failed to delete favorite arts.");
+    }
+  }
+
+  // Get all favorite ArtModels for a specific user
+  Future<List<ArtModel>> getAllFavoriteArtsByUserId(final int userId) async {
+    try {
+      QuerySnapshot querySnapshot = await artCollection
+          .where("artFavoriteStatusUserList", arrayContains: userId)
+          .get();
+
+      return querySnapshot.docs
+          .map((doc) => ArtModel.fromFirestore(
+        doc.data() as Map<String, dynamic>,
+        doc.id,
+      ))
+          .toList();
+    } catch (e) {
+      print("Error fetching favorite arts for userId $userId: $e");
+      return [];
     }
   }
 }

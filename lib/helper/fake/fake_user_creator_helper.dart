@@ -1,10 +1,16 @@
+import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:math';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as http;
+import 'package:virtual_marketplace_app/db/firestore_db.dart';
 import '../../models/art_model/art_model.dart';
 import '../../models/user_model/user_model.dart';
 
 class FakeUserCreatorHelper {
+  static final FirebaseDb firebaseDb = FirebaseDb();
+
   static final List<String> maleFirstNames = [
     "James", "John", "Robert", "Michael", "William",
     "David", "Richard", "Charles", "Joseph", "Thomas",
@@ -117,6 +123,7 @@ class FakeUserCreatorHelper {
                   artDimensions: artDimensions,
                   artPrice: artPrice,
                   artType: capitalize(artType),
+                  artFavoriteStatusUserList: [],
                 );
 
                 userArtModels.add(artModel);
@@ -139,5 +146,72 @@ class FakeUserCreatorHelper {
   static String capitalize(String input) {
     if (input.isEmpty) return input;
     return input[0].toUpperCase() + input.substring(1);
+  }
+
+  static Future<void> updateFavoriteStatusForAllFakeUsers() async {
+    try {
+      final Map<UserModel, List<ArtModel>> allFakeUserModels = await firebaseDb.getAllFakeUsers();
+
+      final List<int> fakeUserIds = allFakeUserModels.keys.map((user) => user.userId).toList();
+
+      final Random random = Random();
+
+      // Remove artFavoriteStatus for each art model
+      await firebaseDb.removeArtFavoriteStatusField();
+
+      // Update the artFavoriteStatusUserList for each art model
+      allFakeUserModels.forEach((user, artModels) {
+        for (final artModel in artModels) {
+          // Randomly pick 5 unique user IDs from fakeUserIds list
+          final List<int> randomFavorites = fakeUserIds.toSet().toList()..shuffle(random);
+          artModel.artFavoriteStatusUserList = randomFavorites.take(5).toList();
+        }
+      });
+
+      // Update ArtModels
+      final WriteBatch batch = firebaseDb.firestore.batch();
+
+      allFakeUserModels.forEach((user, artModels) {
+        for (final artModel in artModels) {
+          final artDoc = firebaseDb.artCollection.doc(artModel.id);
+          batch.update(artDoc, {"artFavoriteStatusUserList": artModel.artFavoriteStatusUserList});
+        }
+      });
+
+      await batch.commit();
+      print("Favorite status user lists updated successfully!");
+    } catch (e) {
+      print("Error updating favorite status user lists: $e");
+      throw Exception("Failed to update favorite status user lists.");
+    }
+  }
+
+  static Future<void> updateArtWorkPictureUris() async {
+    try {
+      final Map<UserModel, List<ArtModel>> allFakeUserModels = await firebaseDb.getAllFakeUsers();
+
+      final WriteBatch batch = firebaseDb.firestore.batch();
+
+      int imageIndex = 0;
+
+      allFakeUserModels.forEach((user, artModels) {
+        for (final artModel in artModels) {
+          if (imageIndex >= 200) {
+            imageIndex = 0;
+          }
+
+          artModel.artWorkPictureUri = "lib/img/fake/pixabayImage$imageIndex.jpg";
+
+          final artDoc = firebaseDb.artCollection.doc(artModel.id);
+          batch.update(artDoc, {"artWorkPictureUri": artModel.artWorkPictureUri});
+
+          imageIndex++;
+        }
+      });
+
+      await batch.commit();
+    } catch (e) {
+      throw Exception("Error updating artWorkPictureUri for art models: $e");
+    }
   }
 }

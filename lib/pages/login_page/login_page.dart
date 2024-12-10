@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:virtual_marketplace_app/pages/main_page/main_page.dart';
@@ -70,6 +69,27 @@ class LoginPageState extends State<LoginPage> {
     }
   }
 
+  Future<void> updateFakeDataFavoriteStatus() async {
+    try {
+      await FakeUserCreatorHelper.updateFavoriteStatusForAllFakeUsers();
+
+      print("Fake users successfully updated favorite statuses!");
+    } catch (e) {
+      print("Error updating the fake users' favorite status: $e");
+    }
+  }
+
+  Future<void> updateFakeDataArtUris() async {
+    try {
+      print("Updating uris in art models...");
+      await FakeUserCreatorHelper.updateArtWorkPictureUris();
+
+      print("Fake users successfully updated art uris!");
+    } catch (e) {
+      print("Error updating the fake users' art uris: $e");
+    }
+  }
+
   void startImageRotation() {
     timer = Timer.periodic(Duration(seconds: 5), (timer) {
       setState(() {
@@ -131,9 +151,12 @@ class LoginPageState extends State<LoginPage> {
         final userExistsInDatabase = await firebaseDb.checkIfUserExists(userId);
 
         if (userExistsInDatabase) {
+          /*
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (context) => const MainPage()),
           );
+
+           */
         } else {
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (context) => SettingsPage()),
@@ -272,17 +295,15 @@ class LoginPageState extends State<LoginPage> {
               style: TextStyle(color: Colors.red),
             ),
 
-            /**
-            // Create and Store Fake Data Button
+            // Update fake user data
             ElevatedButton(
-              onPressed: createAndStoreFakeData,
+              onPressed: updateFakeDataArtUris,
               style: ElevatedButton.styleFrom(
                 foregroundColor: Colors.white,
                 backgroundColor: Colors.deepPurple,
               ),
-              child: const Text("Generate and Store Fake Data"),
+              child: const Text("Update Fake Data"),
             ),
-            */
           ],
         ),
       ),

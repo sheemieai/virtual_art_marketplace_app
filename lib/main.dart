@@ -11,6 +11,7 @@ import 'package:virtual_marketplace_app/pages/payment_page/payment_page.dart';
 import 'package:virtual_marketplace_app/pages/payment_page/shopping_cart/shopping_cart_page.dart';
 import 'package:virtual_marketplace_app/pages/settings_page/settings_page.dart';
 import 'db/firestore_db.dart';
+import 'models/art_model/art_model.dart';
 import 'models/user_model/user_model.dart';
 import 'pages/login_page/login_page.dart';
 import 'firebase_options.dart';
@@ -47,7 +48,28 @@ class MyApp extends StatelessWidget {
       ChatsPage(), // 1
       ChatRoomPage(chatRoomName: '',), // 2
       UploadArtPage(), // 3
-      DisplayArtPage(), // 4
+      DisplayArtPage(
+        // fake art model
+        passedArtModel: ArtModel(
+          id: 'art1',
+          artId: 101,
+          artWorkPictureUri: '...',
+          artWorkName: 'Starry Night',
+          artWorkCreator: UserModel(
+            id: 'user1',
+            userId: 1,
+            userEmail: 'artist@example.com',
+            userName: 'Vincent van Gogh',
+            userMoney: '5000',
+            userPictureUri: 'lib/img/user/photos/artist.jpg',
+            registrationDatetime: DateTime.now(),
+          ),
+          artDimensions: '50x60cm',
+          artPrice: '1000',
+          artType: 'Painting',
+          artFavoriteStatusUserList: [],
+        ),
+      ), // 4
       FavoriteArtPage(
         // fake user for testing
         loggedInUser: fakeUser,
@@ -59,7 +81,9 @@ class MyApp extends StatelessWidget {
       ShoppingCartPage(), // 7
       PaymentPage(), // 8
       SettingsPage(), // 9
-      MainPage(), // 10
+      MainPage(
+        loggedInUser: fakeUser,
+      ), // 10
     ];
 
     return MaterialApp(
@@ -67,7 +91,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.deepPurple,
       ),
-      home: pages[6],
+      home: pages[10],
     );
   }
 }

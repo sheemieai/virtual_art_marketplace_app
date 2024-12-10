@@ -11,6 +11,7 @@ class ArtModel {
   String artDimensions;
   String artPrice;
   String artType;
+  List<int> artFavoriteStatusUserList;
 
   ArtModel({
     required this.id,
@@ -21,6 +22,7 @@ class ArtModel {
     required this.artDimensions,
     required this.artPrice,
     required this.artType,
+    required this.artFavoriteStatusUserList,
   });
 
   // Create ArtModel instance from Firestore data
@@ -37,6 +39,7 @@ class ArtModel {
       artDimensions: data["artDimensions"] ?? "",
       artPrice: data["artPrice"] ?? "",
       artType: data["artType"] ?? "",
+      artFavoriteStatusUserList: List<int>.from(data["artFavoriteStatusUserList"] ?? []),
     );
   }
 
@@ -50,6 +53,7 @@ class ArtModel {
       "artDimensions": artDimensions,
       "artPrice": artPrice,
       "artType": artType,
+      "artFavoriteStatusUserList": artFavoriteStatusUserList,
     };
   }
 
@@ -108,6 +112,7 @@ class ArtModel {
               artDimensions: artDimensions,
               artPrice: artPrice,
               artType: capitalize(artType),
+              artFavoriteStatusUserList: [],
             );
           }).toList();
 

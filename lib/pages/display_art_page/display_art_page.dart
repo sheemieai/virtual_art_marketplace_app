@@ -3,8 +3,9 @@ import 'package:virtual_marketplace_app/models/art_model/art_model.dart';
 import 'package:virtual_marketplace_app/models/user_model/user_model.dart';
 
 class DisplayArtPage extends StatelessWidget {
-  // Default constructor with no required parameters
-  DisplayArtPage({Key? key}) : super(key: key);
+  ArtModel passedArtModel;
+
+  DisplayArtPage({super.key, required this.passedArtModel});
 
   // TODO CHANGE ART MODEL IMPLEMNTATION
   final ArtModel exampleArt = ArtModel(
@@ -18,12 +19,13 @@ class DisplayArtPage extends StatelessWidget {
       userEmail: 'artist@example.com',
       userName: 'Vincent van Gogh',
       userMoney: '5000',
-      userPictureUri: 'https://example.com/artist.jpg',
+      userPictureUri: 'lib/img/user/photos/artist.jpg',
       registrationDatetime: DateTime.now(),
     ),
     artDimensions: '50x60cm',
     artPrice: '1000',
     artType: 'Painting',
+    artFavoriteStatusUserList: [],
   );
 
   final bool isUserArt = true;

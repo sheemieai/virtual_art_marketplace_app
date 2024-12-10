@@ -108,10 +108,12 @@ class SettingsPageState extends State<SettingsPage> {
         SnackBar(content: Text(userExists ? "User details updated successfully!" :
         "User added successfully!")),
       );
-
+/*
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (context) => MainPage()),
       );
+
+ */
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Error updating user details: ${e.toString()}")),
