@@ -9,6 +9,7 @@ import 'package:virtual_marketplace_app/pages/favorite_page/favorite_page.dart';
 import 'package:virtual_marketplace_app/pages/login_page/login_page.dart';
 import 'package:virtual_marketplace_app/pages/main_page/main_page.dart';
 import 'package:virtual_marketplace_app/pages/payment_page/shopping_cart/shopping_cart_page.dart';
+import '../display_art_page/display_art_page.dart';
 
 class MyArtPage extends StatefulWidget {
   final UserModel loggedInUser;
@@ -195,8 +196,7 @@ class MyArtPageState extends State<MyArtPage> {
             const SizedBox(height: 16.0),
             Expanded(
               child: GridView.builder(
-                gridDelegate:
-                const SliverGridDelegateWithFixedCrossAxisCount(
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 3,
                   mainAxisSpacing: 10.0,
                   crossAxisSpacing: 10.0,
@@ -205,13 +205,25 @@ class MyArtPageState extends State<MyArtPage> {
                 itemCount: artModels.length,
                 itemBuilder: (context, index) {
                   final artModel = artModels[index];
-                  return Container(
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey),
-                      borderRadius: BorderRadius.circular(8.0),
-                      image: DecorationImage(
-                        image: AssetImage(artModel.artWorkPictureUri),
-                        fit: BoxFit.cover,
+                  return GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => DisplayArtPage(
+                            passedArtModel: artModel,
+                          ),
+                        ),
+                      );
+                    },
+                    child: Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey),
+                        borderRadius: BorderRadius.circular(8.0),
+                        image: DecorationImage(
+                          image: AssetImage(artModel.artWorkPictureUri),
+                          fit: BoxFit.cover,
+                        ),
                       ),
                     ),
                   );

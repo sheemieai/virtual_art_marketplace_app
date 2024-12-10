@@ -91,7 +91,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.deepPurple,
       ),
-      home: pages[10],
+      home: pages[6],
     );
   }
 }
