@@ -1,5 +1,10 @@
+import 'dart:math';
+
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:virtual_marketplace_app/db/firestore_db.dart';
 import 'package:virtual_marketplace_app/models/art_model/art_model.dart';
+import 'package:virtual_marketplace_app/models/cart_model/cart_model.dart';
 import 'package:virtual_marketplace_app/models/user_model/user_model.dart';
 import 'package:virtual_marketplace_app/pages/display_art_page/upload_art_page/upload_art_page.dart';
 import 'package:virtual_marketplace_app/pages/favorite_page/favorite_page.dart';
@@ -20,6 +25,7 @@ class DisplayArtPage extends StatefulWidget {
 }
 
 class DisplayArtPageState extends State<DisplayArtPage> {
+  final FirebaseDb firebaseDb = FirebaseDb();
   final bool isUserArt = true;
 
   static String capitalize(String input) {
@@ -27,10 +33,61 @@ class DisplayArtPageState extends State<DisplayArtPage> {
     return input[0].toUpperCase() + input.substring(1);
   }
 
+  Future<void> _buyArt() async {
+    final List<ArtModel> oldArtModelList =
+        await firebaseDb.getAllArtModelsByUserId(widget.loggedInUser.userId);
+
+    try {
+      if (oldArtModelList.isEmpty) {
+        oldArtModelList.add(widget.passedArtModel);
+
+        final CartModel newCartModel = CartModel(
+          id: getRandomLettersAndDigits(),
+          user: widget.loggedInUser,
+          artModelList: oldArtModelList,
+        );
+
+        await firebaseDb.addCart(newCartModel);
+      } else {
+        final List<CartModel> cartModelList =
+            await firebaseDb.getAllCartsByUserId(widget.loggedInUser.userId);
+
+        final CartModel oldCartModel = cartModelList.first;
+
+        oldCartModel.artModelList.add(widget.passedArtModel);
+
+        await firebaseDb.updateCart(oldCartModel);
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('You have successfully bought the artwork!'),
+          duration: Duration(seconds: 3),
+        ),
+      );
+      print("Successfully completed _buyArt method.");
+    } catch (e) {
+      print("Error during _buyArt method: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Failed to complete purchase. Please try again.'),
+          duration: Duration(seconds: 3),
+        ),
+      );
+    }
+  }
+
+  String getRandomLettersAndDigits() {
+    const characters =
+        'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    final random = Random();
+    return List.generate(
+        6, (_) => characters[random.nextInt(characters.length)]).join();
+  }
+
   @override
   Widget build(BuildContext context) {
-    final artistName =
-        widget.passedArtModel.artWorkCreator.userName; 
+    final artistName = widget.passedArtModel.artWorkCreator.userName;
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -205,7 +262,7 @@ class DisplayArtPageState extends State<DisplayArtPage> {
               // Buy button
               ElevatedButton(
                 onPressed: () {
-                  // TODO Navigate to payment page
+                  _buyArt();
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.black,

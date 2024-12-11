@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:virtual_marketplace_app/models/cart_model/cart_model.dart';
 import '../models/art_model/art_model.dart';
 import '../models/chat_model/chat_page_model.dart';
 import '../models/chat_model/chat_room_model.dart';
@@ -10,10 +11,14 @@ class FirebaseDb {
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
 
   CollectionReference get usersCollection => firestore.collection("users");
-  CollectionReference get purchaseArtCollection => firestore.collection("purchaseArts");
+  CollectionReference get purchaseArtCollection =>
+      firestore.collection("purchaseArts");
   CollectionReference get artCollection => firestore.collection("arts");
-  CollectionReference get chatPageCollection => firestore.collection("chatPages");
-  CollectionReference get chatRoomCollection => firestore.collection("chatRooms");
+  CollectionReference get chatPageCollection =>
+      firestore.collection("chatPages");
+  CollectionReference get chatRoomCollection =>
+      firestore.collection("chatRooms");
+  CollectionReference get cartCollection => firestore.collection("carts");
 
   /**
    * User Model Methods
@@ -37,7 +42,8 @@ class FirebaseDb {
   // Check if the userId is unique in Firestore
   Future<bool> isUserIdUnique(final int userId) async {
     try {
-      final query = await usersCollection.where("userId", isEqualTo: userId).get();
+      final query =
+          await usersCollection.where("userId", isEqualTo: userId).get();
       return query.docs.isEmpty;
     } catch (e) {
       print("Error checking userId uniqueness: $e");
@@ -49,8 +55,7 @@ class FirebaseDb {
   Future<int?> getLastUserId() async {
     try {
       final querySnapshot = await usersCollection
-          .orderBy(
-          "userId", descending: true)
+          .orderBy("userId", descending: true)
           .limit(1)
           .get();
 
@@ -129,7 +134,8 @@ class FirebaseDb {
     try {
       final querySnapshot = await usersCollection.get();
       return querySnapshot.docs
-          .map((doc) => UserModel.fromFirestore(doc.data() as Map<String, dynamic>, doc.id))
+          .map((doc) => UserModel.fromFirestore(
+              doc.data() as Map<String, dynamic>, doc.id))
           .toList();
     } catch (e) {
       print("Error fetching all users: $e");
@@ -158,7 +164,8 @@ class FirebaseDb {
   }
 
   // Update an existing PurchaseArtModel
-  Future<void> updatePurchaseArt(final String id, final PurchaseArtModel purchaseArt) async {
+  Future<void> updatePurchaseArt(
+      final String id, final PurchaseArtModel purchaseArt) async {
     try {
       await purchaseArtCollection.doc(id).update(purchaseArt.toFirestore());
       print("PurchaseArt updated successfully");
@@ -201,9 +208,9 @@ class FirebaseDb {
       QuerySnapshot querySnapshot = await purchaseArtCollection.get();
       return querySnapshot.docs
           .map((doc) => PurchaseArtModel.fromFirestore(
-        doc.data() as Map<String, dynamic>,
-        doc.id,
-      ))
+                doc.data() as Map<String, dynamic>,
+                doc.id,
+              ))
           .toList();
     } catch (e) {
       print("Error getting PurchaseArts: $e");
@@ -271,9 +278,9 @@ class FirebaseDb {
       QuerySnapshot querySnapshot = await artCollection.get();
       return querySnapshot.docs
           .map((doc) => ArtModel.fromFirestore(
-        doc.data() as Map<String, dynamic>,
-        doc.id,
-      ))
+                doc.data() as Map<String, dynamic>,
+                doc.id,
+              ))
           .toList();
     } catch (e) {
       print("Error fetching arts: $e");
@@ -290,9 +297,9 @@ class FirebaseDb {
 
       return querySnapshot.docs
           .map((doc) => ArtModel.fromFirestore(
-        doc.data() as Map<String, dynamic>,
-        doc.id,
-      ))
+                doc.data() as Map<String, dynamic>,
+                doc.id,
+              ))
           .toList();
     } catch (e) {
       print("Error fetching arts for userId $userId: $e");
@@ -316,7 +323,8 @@ class FirebaseDb {
   }
 
   // Update an existing ChatPageModel
-  Future<void> updateChatPage(final String id, final ChatPageModel chatPage) async {
+  Future<void> updateChatPage(
+      final String id, final ChatPageModel chatPage) async {
     try {
       await chatPageCollection.doc(id).update(chatPage.toFirestore());
       print("ChatPage updated successfully.");
@@ -360,9 +368,9 @@ class FirebaseDb {
       QuerySnapshot querySnapshot = await chatPageCollection.get();
       return querySnapshot.docs
           .map((doc) => ChatPageModel.fromFirestore(
-        doc.data() as Map<String, dynamic>,
-        doc.id,
-      ))
+                doc.data() as Map<String, dynamic>,
+                doc.id,
+              ))
           .toList();
     } catch (e) {
       print("Error fetching ChatPages: $e");
@@ -386,7 +394,8 @@ class FirebaseDb {
   }
 
   // Update an existing ChatRoomModel
-  Future<void> updateChatRoom(final String id, final ChatRoomModel chatRoom) async {
+  Future<void> updateChatRoom(
+      final String id, final ChatRoomModel chatRoom) async {
     try {
       await chatRoomCollection.doc(id).update(chatRoom.toFirestore());
       print("ChatRoom updated successfully.");
@@ -430,9 +439,9 @@ class FirebaseDb {
       QuerySnapshot querySnapshot = await chatRoomCollection.get();
       return querySnapshot.docs
           .map((doc) => ChatRoomModel.fromFirestore(
-        doc.data() as Map<String, dynamic>,
-        doc.id,
-      ))
+                doc.data() as Map<String, dynamic>,
+                doc.id,
+              ))
           .toList();
     } catch (e) {
       print("Error fetching ChatRooms: $e");
@@ -471,8 +480,8 @@ class FirebaseDb {
   }
 
   // Store Fake Users with multiple Fake ArtModels
-  Future<void> storeFakeUsersAndArtModels(
-      final List<UserModel> userModels, final Map<UserModel, List<ArtModel>> userArtMap) async {
+  Future<void> storeFakeUsersAndArtModels(final List<UserModel> userModels,
+      final Map<UserModel, List<ArtModel>> userArtMap) async {
     final WriteBatch batch = firestore.batch();
 
     try {
@@ -535,7 +544,8 @@ class FirebaseDb {
   // Remove artFavoriteStatus field from artModels
   Future<void> removeArtFavoriteStatusField() async {
     try {
-      final QuerySnapshot querySnapshot = await FirebaseFirestore.instance.collection("arts").get();
+      final QuerySnapshot querySnapshot =
+          await FirebaseFirestore.instance.collection("arts").get();
 
       final WriteBatch batch = FirebaseFirestore.instance.batch();
 
@@ -596,13 +606,88 @@ class FirebaseDb {
 
       return querySnapshot.docs
           .map((doc) => ArtModel.fromFirestore(
-        doc.data() as Map<String, dynamic>,
-        doc.id,
-      ))
+                doc.data() as Map<String, dynamic>,
+                doc.id,
+              ))
           .toList();
     } catch (e) {
       print("Error fetching favorite arts for userId $userId: $e");
       return [];
+    }
+  }
+
+  /**
+   * Cart Methods
+   */
+
+  // Add a new CartModel
+  Future<void> addCart(final CartModel cartModel) async {
+    try {
+      await cartCollection.doc(cartModel.id).set(cartModel.toFirestore());
+      print("Cart added successfully.");
+    } catch (e) {
+      print("Error adding cart: $e");
+      throw Exception("Failed to add cart.");
+    }
+  }
+
+  // Update an existing CartModel
+  Future<void> updateCart(final CartModel cartModel) async {
+    try {
+      await cartCollection.doc(cartModel.id).update(cartModel.toFirestore());
+      print("Cart updated successfully.");
+    } catch (e) {
+      print("Error updating cart: $e");
+      throw Exception("Failed to update cart.");
+    }
+  }
+
+  // Delete a CartModel by ID
+  Future<void> deleteCart(final String id) async {
+    try {
+      await cartCollection.doc(id).delete();
+      print("Cart deleted successfully.");
+    } catch (e) {
+      print("Error deleting cart: $e");
+      throw Exception("Failed to delete cart.");
+    }
+  }
+
+  // Get all CartModels for a specific user
+  Future<List<CartModel>> getAllCartsByUserId(final int userId) async {
+    try {
+      QuerySnapshot querySnapshot =
+          await cartCollection.where("user.userId", isEqualTo: userId).get();
+
+      return querySnapshot.docs
+          .map((doc) => CartModel.fromFirestore(
+                doc.data() as Map<String, dynamic>,
+                doc.id,
+              ))
+          .toList();
+    } catch (e) {
+      print("Error fetching carts for userId $userId: $e");
+      return [];
+    }
+  }
+
+  // Get all ArtModels for a specific user
+  Future<List<ArtModel>> getAllArtModelsByUserId(final int userId) async {
+    try {
+      QuerySnapshot querySnapshot =
+          await cartCollection.where("user.userId", isEqualTo: userId).get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        final cartData =
+            querySnapshot.docs.first.data() as Map<String, dynamic>;
+        final cartModel =
+            CartModel.fromFirestore(cartData, querySnapshot.docs.first.id);
+        return cartModel.artModelList;
+      }
+      return [];
+    } catch (e) {
+      print("Error fetching art models for userId $userId: $e");
+      throw Exception("Failed to fetch art models.");
     }
   }
 }
