@@ -1,38 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:virtual_marketplace_app/models/art_model/art_model.dart';
-import 'package:virtual_marketplace_app/models/user_model/user_model.dart';
 
 class DisplayArtPage extends StatelessWidget {
   ArtModel passedArtModel;
 
   DisplayArtPage({super.key, required this.passedArtModel});
 
-  // TODO CHANGE ART MODEL IMPLEMNTATION
-  final ArtModel exampleArt = ArtModel(
-    id: 'art1',
-    artId: 101,
-    artWorkPictureUri: '...',
-    artWorkName: 'Starry Night',
-    artWorkCreator: UserModel(
-      id: 'user1',
-      userId: 1,
-      userEmail: 'artist@example.com',
-      userName: 'Vincent van Gogh',
-      userMoney: '5000',
-      userPictureUri: 'lib/img/user/photos/artist.jpg',
-      registrationDatetime: DateTime.now(),
-    ),
-    artDimensions: '50x60cm',
-    artPrice: '1000',
-    artType: 'Painting',
-    artFavoriteStatusUserList: [],
-  );
-
   final bool isUserArt = true;
 
   @override
   Widget build(BuildContext context) {
-    final artistName = exampleArt.artWorkCreator.userName;
+    final artistName = passedArtModel.artWorkCreator.userName;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -56,7 +34,7 @@ class DisplayArtPage extends StatelessWidget {
                 height: 200,
                 decoration: BoxDecoration(
                   image: DecorationImage(
-                    image: NetworkImage(exampleArt.artWorkPictureUri),
+                    image: NetworkImage(passedArtModel.artWorkPictureUri),
                     fit: BoxFit.cover,
                   ),
                 ),
@@ -64,7 +42,7 @@ class DisplayArtPage extends StatelessWidget {
               const SizedBox(height: 16),
               // Artwork name and artist
               Text(
-                '${exampleArt.artWorkName} by $artistName',
+                '${passedArtModel.artWorkName} by $artistName',
                 style: const TextStyle(
                   color: Colors.white,
                   fontSize: 18,
@@ -82,14 +60,14 @@ class DisplayArtPage extends StatelessWidget {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.green,
                     ),
-                    child: Text(exampleArt.artDimensions),
+                    child: Text(passedArtModel.artDimensions),
                   ),
                   ElevatedButton(
                     onPressed: () {},
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.green,
                     ),
-                    child: Text('\$${exampleArt.artPrice}'),
+                    child: Text('\$${passedArtModel.artPrice}'),
                   ),
                 ],
               ),

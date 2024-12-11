@@ -138,12 +138,12 @@ class MainPageState extends State<MainPage> {
             ListTile(
               leading: const Icon(Icons.chat),
               title: const Text("Chats"),
-              onTap: () {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => const ChatsPage()),
-                );
-              },
+              // onTap: () {
+              //   Navigator.pushReplacement(
+              //     context,
+              //     MaterialPageRoute(builder: (context) => const ChatsPage()),
+              //   );
+              // },
             ),
             ListTile(
               leading: const Icon(Icons.upload),

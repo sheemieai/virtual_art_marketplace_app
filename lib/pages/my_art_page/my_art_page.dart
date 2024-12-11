@@ -111,12 +111,12 @@ class MyArtPageState extends State<MyArtPage> {
             ListTile(
               leading: const Icon(Icons.chat),
               title: const Text("Chats"),
-              onTap: () {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => ChatsPage()),
-                );
-              },
+              // onTap: () {
+              //   Navigator.pushReplacement(
+              //     context,
+              //     MaterialPageRoute(builder: (context) => ChatsPage()),
+              //   );
+              // },
             ),
             ListTile(
               leading: const Icon(Icons.upload),
