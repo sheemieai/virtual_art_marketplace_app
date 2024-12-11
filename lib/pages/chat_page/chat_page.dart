@@ -1,32 +1,75 @@
 import 'package:flutter/material.dart';
+import 'package:virtual_marketplace_app/db/firestore_db.dart';
+import 'package:virtual_marketplace_app/models/chat_model/chat_page_model.dart';
+import 'package:virtual_marketplace_app/models/user_model/user_model.dart';
 import 'package:virtual_marketplace_app/pages/chat_page/chat_room_page/chat_room_page.dart';
 
 class ChatsPage extends StatefulWidget {
-  const ChatsPage({super.key});
+  final UserModel loggedInUser;
+
+  const ChatsPage({Key? key, required this.loggedInUser}) : super(key: key);
 
   @override
   _ChatsPageState createState() => _ChatsPageState();
 }
 
 class _ChatsPageState extends State<ChatsPage> {
-  // List to hold chat rooms dynamically
-  final List<String> chatRooms = [];
+  List<ChatPageModel> chatRooms = [];
+  final FirebaseDb firebaseDb = FirebaseDb();
+  Map<String, UserModel> userCache = {};
+
+  // Fetch user with caching
+  Future<UserModel?> fetchUser(String userId) async {
+    if (userCache.containsKey(userId)) {
+      return userCache[userId];
+    }
+    final user = await firebaseDb.getUser(userId);
+    if (user != null) {
+      userCache[userId] = user;
+    }
+    return user;
+  }
 
   // Function to add a new chat room
-  void _addChatRoom() {
-    setState(() {
-      if (chatRooms.length < 40) {
-        int newChatNumber = chatRooms.length + 1;
-        chatRooms.add("Chat Room $newChatNumber");
-      } else {
-        // Limits number of chats to 40
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("You can only add up to 40 chats!"),
-          ),
-        );
+  Future<void> _addChatRoom(String recipientUserId) async {
+    try {
+      // Fetch recipient user details
+      final recipientUser = await fetchUser(recipientUserId);
+      if (recipientUser == null) {
+        throw Exception("Recipient user not found");
       }
-    });
+
+      int newChatNumber = chatRooms.length + 1;
+      String newChatName = "Chat Room $newChatNumber";
+
+      // Create a new ChatPageModel
+      final newChatPage = ChatPageModel(
+        id: "",
+        chatBoxId: newChatNumber,
+        chatRoomName: newChatName,
+        loggedInUser: widget.loggedInUser,
+        userGettingMessage: recipientUser,
+        userGettingMessageIconUri: recipientUser.userPictureUri,
+        lastMessageSent: "",
+        lastMessageDate: DateTime.now(),
+      );
+
+      // Save to Firestore
+      await firebaseDb.addChatPage(newChatPage);
+
+      // Update local chat room list
+      setState(() {
+        chatRooms.add(newChatPage);
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("$newChatName added successfully!")),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Failed to add chat room: $e")),
+      );
+    }
   }
 
   @override
@@ -37,9 +80,7 @@ class _ChatsPageState extends State<ChatsPage> {
         backgroundColor: const Color(0xFFFAF3E0),
       ),
       body: chatRooms.isEmpty
-          ?
-          // Default text when there is not chat rooms
-          const Center(
+          ? const Center(
               child: Text(
                 "No chats available. Start a new chat!",
                 style: TextStyle(color: Color(0xFF5A3D2B), fontSize: 30),
@@ -48,38 +89,61 @@ class _ChatsPageState extends State<ChatsPage> {
           : ListView.builder(
               itemCount: chatRooms.length,
               itemBuilder: (context, index) {
-                return GestureDetector(
-                  onTap: () {
-                    // Navigate to the respective ChatRoomPage
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ChatRoomPage(
-                          chatRoomName: chatRooms[index],
+                final chatRoom = chatRooms[index];
+
+                return FutureBuilder<UserModel?>(
+                  future:
+                      fetchUser(chatRoom.userGettingMessage.userId.toString()),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    if (!snapshot.hasData || snapshot.data == null) {
+                      return ListTile(
+                        title: Text(chatRoom.chatRoomName),
+                        subtitle: const Text("User not found"),
+                      );
+                    }
+
+                    final recipientUser = snapshot.data!;
+                    return GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ChatRoomPage(
+                              chatRoomName: chatRoom.chatRoomName,
+                            ),
+                          ),
+                        );
+                      },
+                      child: Card(
+                        color: const Color(0xFF5A3D2B),
+                        child: ListTile(
+                          leading: CircleAvatar(
+                            backgroundImage:
+                                NetworkImage(recipientUser.userPictureUri),
+                          ),
+                          title: Text(
+                            chatRoom.chatRoomName,
+                            style: const TextStyle(color: Colors.white),
+                          ),
+                          subtitle: Text(
+                            "Chat with ${recipientUser.userName}",
+                            style: const TextStyle(color: Colors.grey),
+                          ),
                         ),
                       ),
                     );
                   },
-                  child: Card(
-                    color: const Color(0xFF5A3D2B),
-                    child: ListTile(
-                      title: Text(
-                        chatRooms[index],
-                        style: const TextStyle(color: Colors.white),
-                      ),
-                      subtitle: const Text(
-                        "Tap to open chat",
-                        style: TextStyle(color: Colors.grey),
-                      ),
-                    ),
-                  ),
                 );
               },
             ),
       backgroundColor: const Color(0xFFFAF3E0),
-      // button to add chat room
       floatingActionButton: FloatingActionButton(
-        onPressed: _addChatRoom,
+        onPressed: () async {
+          await _addChatRoom('testRecipientUserId');
+        },
         backgroundColor: const Color(0xFF5A3D2B),
         child: const Icon(
           Icons.add,
