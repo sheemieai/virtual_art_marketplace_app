@@ -1,7 +1,14 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:virtual_marketplace_app/models/art_model/art_model.dart';
 import 'package:virtual_marketplace_app/models/payment_model/purchase_art_model.dart';
 import 'package:virtual_marketplace_app/models/user_model/user_model.dart';
+import 'package:virtual_marketplace_app/pages/display_art_page/upload_art_page/upload_art_page.dart';
+import 'package:virtual_marketplace_app/pages/favorite_page/favorite_page.dart';
+import 'package:virtual_marketplace_app/pages/login_page/login_page.dart';
+import 'package:virtual_marketplace_app/pages/main_page/main_page.dart';
+import 'package:virtual_marketplace_app/pages/my_art_page/my_art_page.dart';
 import 'package:virtual_marketplace_app/pages/payment_page/shopping_cart/shopping_cart_page.dart';
 import 'package:virtual_marketplace_app/db/firestore_db.dart';
 
@@ -17,8 +24,7 @@ class PaymentPage extends StatefulWidget {
 class _PaymentPageState extends State<PaymentPage> {
   final FirebaseDb firebaseDb = FirebaseDb();
 
-  double currentBalance = 0;
-  final TextEditingController expiryDateController = TextEditingController();
+  int currentBalance = 0;
   UserModel? currentUser;
   List<ArtModel> userArts = [];
 
@@ -33,7 +39,7 @@ class _PaymentPageState extends State<PaymentPage> {
   // Fetch the current user money balance
   Future<void> _initializeUserBalance() async {
     setState(() {
-      currentBalance = widget.loggedInUser.userMoney as double;
+      currentBalance = int.parse(widget.loggedInUser.userMoney);
     });
   }
 
@@ -41,7 +47,7 @@ class _PaymentPageState extends State<PaymentPage> {
   Future<void> _fetchUserArts() async {
     try {
       List<ArtModel> arts =
-          await firebaseDb.getAllArtsByUserId(widget.loggedInUser.userId);
+          await firebaseDb.getAllArtModelsByUserId(widget.loggedInUser.userId);
       setState(() {
         userArts = arts;
       });
@@ -52,26 +58,28 @@ class _PaymentPageState extends State<PaymentPage> {
 
   @override
   void dispose() {
-    expiryDateController.dispose();
     super.dispose();
   }
 
   // Fetch the total price of art models
-  double calculateTotalPrice() {
+  int calculateTotalPrice() {
     return userArts.fold(
       0,
       (sum, item) =>
           sum +
-          (double.tryParse(item.artPrice.replaceAll(RegExp(r'[^\d.]'), '')) ??
-              0),
+          (int.tryParse(item.artPrice.replaceAll(RegExp(r'[^\d.]'), '')) ?? 0),
     );
   }
 
   // add funds to current balance
-  void addFunds() {
+  Future<void> addFunds() async {
     setState(() {
-      currentBalance += 20;
+      currentBalance += 500000;
     });
+
+    widget.loggedInUser.userMoney = currentBalance.toString();
+    await firebaseDb.updateUser(widget.loggedInUser);
+
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Funds Added Successfully!'),
@@ -79,18 +87,21 @@ class _PaymentPageState extends State<PaymentPage> {
     );
   }
 
-  void makePayment(double totalPrice) async {
+  void makePayment(int totalPrice) async {
     if (currentBalance >= totalPrice) {
       try {
         setState(() {
           currentBalance -= totalPrice;
         });
 
+        widget.loggedInUser.userMoney = currentBalance.toString();
+        await firebaseDb.updateUser(widget.loggedInUser);
+
         // Process each art item in the user's cart
         for (ArtModel art in userArts) {
           // Create a PurchaseArtModel for the current item
           final purchaseArt = PurchaseArtModel(
-            id: "",
+            id: getRandomLettersAndDigits(),
             artModel: art,
             artWorkPurchaseDate: DateTime.now(),
           );
@@ -122,16 +133,116 @@ class _PaymentPageState extends State<PaymentPage> {
     }
   }
 
+  String getRandomLettersAndDigits() {
+    const characters =
+        'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    final random = Random();
+    return List.generate(
+        6, (_) => characters[random.nextInt(characters.length)]).join();
+  }
+
   @override
   Widget build(BuildContext context) {
-    double totalPrice = calculateTotalPrice();
+    int totalPrice = calculateTotalPrice();
 
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text("Purchase Page"),
-        backgroundColor: Colors.blue,
+        backgroundColor: Colors.white,
         centerTitle: true,
+      ),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            const DrawerHeader(
+              decoration: BoxDecoration(color: Colors.deepPurple),
+              child: Text(
+                "Menu",
+                style: TextStyle(color: Colors.white, fontSize: 24),
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.home),
+              title: const Text("Home"),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        MainPage(loggedInUser: widget.loggedInUser),
+                  ),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.favorite),
+              title: const Text("Favorite"),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        FavoriteArtPage(loggedInUser: widget.loggedInUser),
+                  ),
+                );
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.palette),
+              title: Text("My Art"),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        MyArtPage(loggedInUser: widget.loggedInUser),
+                  ),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.shopping_cart),
+              title: const Text("Cart"),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const ShoppingCartPage()),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.chat),
+              title: const Text("Chats"),
+            ),
+            ListTile(
+              leading: const Icon(Icons.upload),
+              title: const Text("Upload Art"),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => UploadArtPage(
+                            loggedInUser: widget.loggedInUser,
+                          )),
+                );
+              },
+            ),
+            const Divider(),
+            ListTile(
+              leading: const Icon(Icons.logout),
+              title: const Text("Log Out"),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => LoginPage()),
+                );
+              },
+            ),
+          ],
+        ),
       ),
       body: Center(
         child: SingleChildScrollView(
@@ -153,17 +264,6 @@ class _PaymentPageState extends State<PaymentPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Back Button
-                IconButton(
-                  icon: const Icon(Icons.arrow_back),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const ShoppingCartPage()),
-                    );
-                  },
-                ),
                 const SizedBox(height: 16),
                 // Total Section
                 Center(
@@ -243,28 +343,34 @@ class _PaymentPageState extends State<PaymentPage> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    ElevatedButton(
+                    ElevatedButton.icon(
                       onPressed: addFunds,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 20, vertical: 12),
-                      ),
-                      child: const Text(
+                      icon: const Icon(Icons.attach_money),
+                      label: const Text(
                         'Add Funds',
                         style: TextStyle(fontSize: 16, color: Colors.white),
                       ),
-                    ),
-                    ElevatedButton(
-                      onPressed: () => makePayment(totalPrice),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 20, vertical: 12),
+                        backgroundColor: Colors.black,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
                       ),
-                      child: const Text(
-                        'Make Payment',
+                    ),
+                    ElevatedButton.icon(
+                      onPressed: () => makePayment(totalPrice),
+                      icon: const Icon(Icons.payment),
+                      label: const Text(
+                        'Purchase',
                         style: TextStyle(fontSize: 16, color: Colors.white),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.black,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
                       ),
                     ),
                   ],
