@@ -1,21 +1,32 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:virtual_marketplace_app/db/firestore_db.dart';
+import 'package:virtual_marketplace_app/models/art_model/art_model.dart';
+import 'package:virtual_marketplace_app/models/user_model/user_model.dart';
+import 'package:virtual_marketplace_app/pages/favorite_page/favorite_page.dart';
+import 'package:virtual_marketplace_app/pages/login_page/login_page.dart';
+import 'package:virtual_marketplace_app/pages/main_page/main_page.dart';
+import 'package:virtual_marketplace_app/pages/my_art_page/my_art_page.dart';
+import 'package:virtual_marketplace_app/pages/payment_page/shopping_cart/shopping_cart_page.dart';
 
 class UploadArtPage extends StatefulWidget {
-  const UploadArtPage({Key? key}) : super(key: key);
+  final UserModel loggedInUser;
+  UploadArtPage({super.key, required this.loggedInUser});
 
   @override
   _UploadArtPageState createState() => _UploadArtPageState();
 }
 
 class _UploadArtPageState extends State<UploadArtPage> {
-  String? uploadedArtUri;
+  final FirebaseDb firebaseDb = FirebaseDb();
+  String? selectedImage;
+  String selectedArtType = "photo";
 
   final TextEditingController artworkNameController = TextEditingController();
   final TextEditingController artistNameController = TextEditingController();
   final TextEditingController widthController = TextEditingController();
   final TextEditingController heightController = TextEditingController();
   final TextEditingController priceController = TextEditingController();
-  final TextEditingController artTypeController = TextEditingController();
 
   @override
   void dispose() {
@@ -24,8 +35,118 @@ class _UploadArtPageState extends State<UploadArtPage> {
     widthController.dispose();
     heightController.dispose();
     priceController.dispose();
-    artTypeController.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickImage() async {
+    final images =
+        List.generate(100, (index) => 'lib/img/photos/pixabayImage$index.jpg');
+    final String? chosenImage = await showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Select an Image'),
+          content: SizedBox(
+            width: double.maxFinite,
+            height: 300,
+            child: GridView.builder(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 4,
+                crossAxisSpacing: 4,
+                mainAxisSpacing: 4,
+              ),
+              itemCount: images.length,
+              itemBuilder: (context, index) {
+                return GestureDetector(
+                  onTap: () {
+                    Navigator.pop(context, images[index]);
+                  },
+                  child: Image.asset(
+                    images[index],
+                    fit: BoxFit.cover,
+                  ),
+                );
+              },
+            ),
+          ),
+        );
+      },
+    );
+
+    if (chosenImage != null) {
+      setState(() {
+        selectedImage = chosenImage;
+      });
+    }
+  }
+
+  Future<void> _submitImage() async {
+    if (selectedImage == null ||
+        artworkNameController.text.isEmpty ||
+        artistNameController.text.isEmpty ||
+        widthController.text.isEmpty ||
+        heightController.text.isEmpty ||
+        priceController.text.isEmpty) {
+      showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: const Text('Error'),
+            content: const Text('All fields are required'),
+          );
+        },
+      );
+      return;
+    }
+
+    final UserModel? fakeUser = await firebaseDb.getUser("user-999001");
+    if (fakeUser == null) {
+      showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: const Text('Error'),
+            content: const Text('User not found'),
+          );
+        },
+      );
+      return;
+    }
+
+    final ArtModel model = ArtModel(
+      id: "art-${fakeUser.userId}-${getRandomLettersAndDigits()}",
+      artId: getRandomInteger(),
+      artWorkPictureUri: selectedImage!,
+      artWorkName: artworkNameController.text,
+      artWorkCreator: fakeUser,
+      artDimensions: "${widthController.text}x${heightController.text}",
+      artPrice: "\$${priceController.text}",
+      artType: selectedArtType,
+      artFavoriteStatusUserList: [],
+    );
+
+    print('Artwork successfully submitted: ${model.toString()}');
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Artwork successfully submitted!'),
+      ),
+    );
+
+    await firebaseDb.addArt(model);
+  }
+
+  String getRandomLettersAndDigits() {
+    const characters =
+        'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    final random = Random();
+    return List.generate(
+        6, (_) => characters[random.nextInt(characters.length)]).join();
+  }
+
+  int getRandomInteger() {
+    final random = Random();
+    return int.parse(
+        List.generate(6, (_) => random.nextInt(10).toString()).join());
   }
 
   @override
@@ -34,65 +155,152 @@ class _UploadArtPageState extends State<UploadArtPage> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text("Upload Artwork"),
-        backgroundColor: Colors.grey[900],
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+        elevation: 0,
+      ),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            const DrawerHeader(
+              decoration: BoxDecoration(color: Colors.deepPurple),
+              child: Text(
+                "Menu",
+                style: TextStyle(color: Colors.white, fontSize: 24),
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.home),
+              title: const Text("Home"),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => MainPage(
+                            loggedInUser: widget.loggedInUser,
+                          )),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.favorite),
+              title: const Text("Favorite"),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => FavoriteArtPage(
+                            loggedInUser: widget.loggedInUser,
+                          )),
+                );
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.palette),
+              title: Text("My Art"),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => MyArtPage(
+                            loggedInUser: widget.loggedInUser,
+                          )),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.shopping_cart),
+              title: const Text("Cart"),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const ShoppingCartPage()),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.chat),
+              title: const Text("Chats"),
+              // onTap: () {
+              //   Navigator.push(
+              //     context,
+              //     MaterialPageRoute(builder: (context) => const ChatsPage()),
+              //   );
+              // },
+            ),
+            const Divider(),
+            ListTile(
+              leading: const Icon(Icons.logout),
+              title: const Text("Log Out"),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => LoginPage()),
+                );
+              },
+            ),
+          ],
+        ),
       ),
       body: Center(
         child: SingleChildScrollView(
           child: Container(
-            width: 300,
-            padding: const EdgeInsets.all(16),
+            width: 400,
+            padding: const EdgeInsets.all(24.0),
             decoration: BoxDecoration(
               color: Colors.white,
-              border: Border.all(color: Colors.grey[300]!, width: 2),
+              border: Border.all(color: Colors.grey.shade300, width: 1),
               borderRadius: BorderRadius.circular(8),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.shade200,
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const SizedBox(height: 16),
-                // Container to show uploaded artwork
+                // Display selected artwork
                 Container(
-                  height: 200,
-                  width: double.infinity,
+                  height: 250,
                   decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey[400]!, width: 2),
                     borderRadius: BorderRadius.circular(8),
                     color: Colors.grey[200],
+                    image: selectedImage != null
+                        ? DecorationImage(
+                            image: AssetImage(selectedImage!),
+                            fit: BoxFit.cover,
+                          )
+                        : null,
                   ),
-                  child: uploadedArtUri == null
+                  child: selectedImage == null
                       ? const Center(
                           child: Text(
-                            'No Artwork Uploaded',
+                            'No Artwork Selected',
                             style: TextStyle(
                               fontSize: 16,
                               color: Colors.grey,
                             ),
                           ),
                         )
-                      : ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child: Image.network(
-                            uploadedArtUri!,
-                            fit: BoxFit.cover,
-                          ),
-                        ),
+                      : null,
                 ),
                 const SizedBox(height: 16),
                 // Upload image button
                 ElevatedButton(
-                  onPressed: () {
-                    // TODO add actual image upload logic
-                    setState(() {
-                      uploadedArtUri = '...';
-                    });
-                  },
+                  onPressed: _pickImage,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.grey[800],
+                    backgroundColor: Colors.black,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                   ),
-                  child: const Text(
-                    'Upload Art Picture',
-                    style: TextStyle(color: Colors.white),
-                  ),
+                  child: const Text("Select Art Picture"),
                 ),
                 const SizedBox(height: 16),
                 // Artwork Name input
@@ -117,51 +325,25 @@ class _UploadArtPageState extends State<UploadArtPage> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    // Width input
                     Expanded(
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: TextField(
-                              controller: widthController,
-                              keyboardType: TextInputType.number,
-                              decoration: const InputDecoration(
-                                labelText: 'Width',
-                                border: OutlineInputBorder(),
-                                isDense: true,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          const Text(
-                            'cm',
-                            style: TextStyle(fontSize: 16),
-                          ),
-                        ],
+                      child: TextField(
+                        controller: widthController,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(
+                          labelText: 'Width (cm)',
+                          border: OutlineInputBorder(),
+                        ),
                       ),
                     ),
                     const SizedBox(width: 16),
-                    // Height input
                     Expanded(
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: TextField(
-                              controller: heightController,
-                              keyboardType: TextInputType.number,
-                              decoration: const InputDecoration(
-                                labelText: 'Height',
-                                border: OutlineInputBorder(),
-                                isDense: true,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          const Text(
-                            'cm',
-                            style: TextStyle(fontSize: 16),
-                          ),
-                        ],
+                      child: TextField(
+                        controller: heightController,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(
+                          labelText: 'Height (cm)',
+                          border: OutlineInputBorder(),
+                        ),
                       ),
                     ),
                   ],
@@ -177,42 +359,35 @@ class _UploadArtPageState extends State<UploadArtPage> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                // Art Type input
-                TextField(
-                  controller: artTypeController,
+                // Art Type dropdown
+                DropdownButtonFormField<String>(
+                  value: selectedArtType,
                   decoration: const InputDecoration(
                     labelText: 'Art Type',
                     border: OutlineInputBorder(),
                   ),
+                  items: [
+                    "photo",
+                    "painting",
+                    "photography",
+                    "sculpture",
+                    "digital"
+                  ]
+                      .map((type) => DropdownMenuItem(
+                            value: type,
+                            child: Text(type),
+                          ))
+                      .toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      selectedArtType = value!;
+                    });
+                  },
                 ),
                 const SizedBox(height: 16),
-                // TODO add submit button logic
+                // Submit button
                 ElevatedButton(
-                  onPressed: () {
-                    if (uploadedArtUri == null ||
-                        artworkNameController.text.isEmpty ||
-                        artistNameController.text.isEmpty ||
-                        widthController.text.isEmpty ||
-                        heightController.text.isEmpty ||
-                        priceController.text.isEmpty ||
-                        artTypeController.text.isEmpty) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                              'Please fill out all fields and upload an image.'),
-                        ),
-                      );
-                      return;
-                    }
-                    // Print entered details
-                    print('Uploaded Art URI: $uploadedArtUri');
-                    print('Artwork Name: ${artworkNameController.text}');
-                    print('Artist Name: ${artistNameController.text}');
-                    print('Width: ${widthController.text} cm');
-                    print('Height: ${heightController.text} cm');
-                    print('Price: ${priceController.text}');
-                    print('Art Type: ${artTypeController.text}');
-                  },
+                  onPressed: _submitImage,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.green,
                   ),

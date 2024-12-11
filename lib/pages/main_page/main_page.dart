@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:virtual_marketplace_app/db/firestore_db.dart';
 import 'package:virtual_marketplace_app/models/art_model/art_model.dart';
 import 'package:virtual_marketplace_app/models/user_model/user_model.dart';
+import 'package:virtual_marketplace_app/pages/favorite_page/favorite_page.dart';
+import 'package:virtual_marketplace_app/pages/my_art_page/my_art_page.dart';
 import '../chat_page/chat_page.dart';
 import '../display_art_page/display_art_page.dart';
 import '../display_art_page/upload_art_page/upload_art_page.dart';
@@ -26,7 +28,13 @@ class MainPageState extends State<MainPage> {
   bool isLoading = true;
   String errorMessage = "";
 
-  final List<String> artTypes = ["Photo", "Painting", "Photography", "Sculpture", "Digital"];
+  final List<String> artTypes = [
+    "Photo",
+    "Painting",
+    "Photography",
+    "Sculpture",
+    "Digital"
+  ];
 
   @override
   void initState() {
@@ -57,10 +65,8 @@ class MainPageState extends State<MainPage> {
 
   void categorizeArtByType() {
     for (var artType in artTypes) {
-      categorizedArt[artType] = artModels
-          .where((art) => art.artType == artType)
-          .take(15)
-          .toList();
+      categorizedArt[artType] =
+          artModels.where((art) => art.artType == artType).take(15).toList();
     }
   }
 
@@ -101,37 +107,40 @@ class MainPageState extends State<MainPage> {
                 style: TextStyle(color: Colors.white, fontSize: 24),
               ),
             ),
-            const ListTile(
+            ListTile(
               leading: const Icon(Icons.favorite),
               title: const Text("Favorite"),
-              /**
               onTap: () {
-                Navigator.pushReplacement(
+                Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => FavoriteArtPage(loggedInUser: widget.loggedInUser,)),
+                  MaterialPageRoute(
+                      builder: (context) => FavoriteArtPage(
+                            loggedInUser: widget.loggedInUser,
+                          )),
                 );
               },
-             */
             ),
-            const ListTile(
+            ListTile(
               leading: Icon(Icons.palette),
               title: Text("My Art"),
-              /**
               onTap: () {
-                Navigator.pushReplacement(
+                Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => MyArtPage(loggedInUser: widget.loggedInUser,)),
+                  MaterialPageRoute(
+                      builder: (context) => MyArtPage(
+                            loggedInUser: widget.loggedInUser,
+                          )),
                 );
               },
-               */
             ),
             ListTile(
               leading: const Icon(Icons.shopping_cart),
               title: const Text("Cart"),
               onTap: () {
-                Navigator.pushReplacement(
+                Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const ShoppingCartPage()),
+                  MaterialPageRoute(
+                      builder: (context) => const ShoppingCartPage()),
                 );
               },
             ),
@@ -139,7 +148,7 @@ class MainPageState extends State<MainPage> {
               leading: const Icon(Icons.chat),
               title: const Text("Chats"),
               // onTap: () {
-              //   Navigator.pushReplacement(
+              //   Navigator.push(
               //     context,
               //     MaterialPageRoute(builder: (context) => const ChatsPage()),
               //   );
@@ -149,10 +158,12 @@ class MainPageState extends State<MainPage> {
               leading: const Icon(Icons.upload),
               title: const Text("Upload Art"),
               onTap: () {
-                Navigator.pushReplacement(
+                Navigator.push(
                   context,
                   MaterialPageRoute(
-                      builder: (context) => const UploadArtPage()),
+                      builder: (context) => UploadArtPage(
+                            loggedInUser: widget.loggedInUser,
+                          )),
                 );
               },
             ),
@@ -161,7 +172,7 @@ class MainPageState extends State<MainPage> {
               leading: const Icon(Icons.logout),
               title: const Text("Log Out"),
               onTap: () {
-                Navigator.pushReplacement(
+                Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => LoginPage()),
                 );
@@ -172,49 +183,52 @@ class MainPageState extends State<MainPage> {
       ),
       body: isLoading
           ? const Center(
-        child: CircularProgressIndicator(),
-      )
+              child: CircularProgressIndicator(),
+            )
           : errorMessage.isNotEmpty
-          ? Center(
-        child: Text(
-          errorMessage,
-          style: const TextStyle(color: Colors.red),
-        ),
-      )
-          : Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: ListView(
-          children: [
-            Container(
-              height: 200,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: Colors.grey[400],
-                borderRadius: BorderRadius.circular(8.0),
-                image: randomArtModel != null
-                    ? DecorationImage(
-                  image: AssetImage(randomArtModel!.artWorkPictureUri),
-                  fit: BoxFit.cover,
+              ? Center(
+                  child: Text(
+                    errorMessage,
+                    style: const TextStyle(color: Colors.red),
+                  ),
                 )
-                    : null,
-              ),
-              child: randomArtModel == null
-                  ? const Center(
-                child: Text(
-                  "No Picture Available",
-                  style: TextStyle(
-                    fontSize: 18,
-                    color: Colors.black54,
+              : Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: ListView(
+                    children: [
+                      Container(
+                        height: 200,
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[400],
+                          borderRadius: BorderRadius.circular(8.0),
+                          image: randomArtModel != null
+                              ? DecorationImage(
+                                  image: AssetImage(
+                                      randomArtModel!.artWorkPictureUri),
+                                  fit: BoxFit.cover,
+                                )
+                              : null,
+                        ),
+                        child: randomArtModel == null
+                            ? const Center(
+                                child: Text(
+                                  "No Picture Available",
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    color: Colors.black54,
+                                  ),
+                                ),
+                              )
+                            : null,
+                      ),
+                      const SizedBox(height: 16.0),
+                      ...artTypes
+                          .map((artType) => buildArtTypeSection(artType))
+                          .toList(),
+                    ],
                   ),
                 ),
-              )
-                  : null,
-            ),
-            const SizedBox(height: 16.0),
-            ...artTypes.map((artType) => buildArtTypeSection(artType)).toList(),
-          ],
-        ),
-      ),
     );
   }
 
@@ -238,7 +252,8 @@ class MainPageState extends State<MainPage> {
             itemCount: artList.length,
             itemBuilder: (context, index) {
               final artModel = artList[index];
-              final isFavorited = artModel.artFavoriteStatusUserList.contains(widget.loggedInUser.userId);
+              final isFavorited = artModel.artFavoriteStatusUserList
+                  .contains(widget.loggedInUser.userId);
               return Padding(
                 padding: const EdgeInsets.only(right: 10.0),
                 child: GestureDetector(
@@ -248,6 +263,7 @@ class MainPageState extends State<MainPage> {
                       MaterialPageRoute(
                         builder: (context) => DisplayArtPage(
                           passedArtModel: artModel,
+                          loggedInUser: widget.loggedInUser,
                         ),
                       ),
                     );

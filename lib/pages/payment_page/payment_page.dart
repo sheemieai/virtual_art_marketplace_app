@@ -157,7 +157,7 @@ class _PaymentPageState extends State<PaymentPage> {
                 IconButton(
                   icon: const Icon(Icons.arrow_back),
                   onPressed: () {
-                    Navigator.pushReplacement(
+                    Navigator.push(
                       context,
                       MaterialPageRoute(
                           builder: (context) => const ShoppingCartPage()),

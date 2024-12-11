@@ -89,7 +89,7 @@ class MyApp extends StatelessWidget {
       ChatRoomPage(
         chatRoomName: '',
       ), // 2
-      UploadArtPage(), // 3
+      UploadArtPage(loggedInUser: fakeUser,), // 3
       DisplayArtPage(
         // fake art model
         passedArtModel: ArtModel(
@@ -111,6 +111,7 @@ class MyApp extends StatelessWidget {
           artType: 'Painting',
           artFavoriteStatusUserList: [],
         ),
+        loggedInUser: fakeUser,
       ), // 4
       FavoriteArtPage(
         // fake user for testing
@@ -135,7 +136,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.deepPurple,
       ),
-      home: pages[8],
+      home: pages[10],
     );
   }
 }

@@ -109,7 +109,7 @@ class SettingsPageState extends State<SettingsPage> {
         "User added successfully!")),
       );
 /*
-      Navigator.of(context).pushReplacement(
+      Navigator.of(context).push(
         MaterialPageRoute(builder: (context) => MainPage()),
       );
 

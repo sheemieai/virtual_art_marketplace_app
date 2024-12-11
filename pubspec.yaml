@@ -41,6 +41,7 @@ dependencies:
   http: ^1.2.2
   path_provider: ^2.1.5
   intl: ^0.20.1
+  image_picker: ^1.1.2
 
 dev_dependencies:
   flutter_test:
@@ -70,6 +71,7 @@ flutter:
     - lib/img/login/
     - lib/img/user/
     - lib/img/fake/
+    - lib/img/photos/
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

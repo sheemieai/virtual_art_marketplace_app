@@ -152,13 +152,13 @@ class LoginPageState extends State<LoginPage> {
 
         if (userExistsInDatabase) {
           /*
-          Navigator.of(context).pushReplacement(
+          Navigator.of(context).push(
             MaterialPageRoute(builder: (context) => const MainPage()),
           );
 
            */
         } else {
-          Navigator.of(context).pushReplacement(
+          Navigator.of(context).push(
             MaterialPageRoute(builder: (context) => SettingsPage()),
           );
         }

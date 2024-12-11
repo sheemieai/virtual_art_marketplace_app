@@ -1,104 +1,228 @@
 import 'package:flutter/material.dart';
 import 'package:virtual_marketplace_app/models/art_model/art_model.dart';
+import 'package:virtual_marketplace_app/models/user_model/user_model.dart';
+import 'package:virtual_marketplace_app/pages/display_art_page/upload_art_page/upload_art_page.dart';
+import 'package:virtual_marketplace_app/pages/favorite_page/favorite_page.dart';
+import 'package:virtual_marketplace_app/pages/login_page/login_page.dart';
+import 'package:virtual_marketplace_app/pages/main_page/main_page.dart';
+import 'package:virtual_marketplace_app/pages/my_art_page/my_art_page.dart';
+import 'package:virtual_marketplace_app/pages/payment_page/shopping_cart/shopping_cart_page.dart';
 
-class DisplayArtPage extends StatelessWidget {
-  ArtModel passedArtModel;
+class DisplayArtPage extends StatefulWidget {
+  final ArtModel passedArtModel;
+  final UserModel loggedInUser;
 
-  DisplayArtPage({super.key, required this.passedArtModel});
+  DisplayArtPage(
+      {super.key, required this.passedArtModel, required this.loggedInUser});
 
+  @override
+  State<DisplayArtPage> createState() => DisplayArtPageState();
+}
+
+class DisplayArtPageState extends State<DisplayArtPage> {
   final bool isUserArt = true;
+
+  static String capitalize(String input) {
+    if (input.isEmpty) return input;
+    return input[0].toUpperCase() + input.substring(1);
+  }
 
   @override
   Widget build(BuildContext context) {
-    final artistName = passedArtModel.artWorkCreator.userName;
-
+    final artistName =
+        widget.passedArtModel.artWorkCreator.userName; 
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text("Artwork Details"),
-        backgroundColor: Colors.grey[900],
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+        elevation: 0,
+      ),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            const DrawerHeader(
+              decoration: BoxDecoration(color: Colors.deepPurple),
+              child: Text(
+                "Menu",
+                style: TextStyle(color: Colors.white, fontSize: 24),
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.home),
+              title: const Text("Home"),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        MainPage(loggedInUser: widget.loggedInUser),
+                  ),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.favorite),
+              title: const Text("Favorite"),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        FavoriteArtPage(loggedInUser: widget.loggedInUser),
+                  ),
+                );
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.palette),
+              title: Text("My Art"),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        MyArtPage(loggedInUser: widget.loggedInUser),
+                  ),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.shopping_cart),
+              title: const Text("Cart"),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const ShoppingCartPage()),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.chat),
+              title: const Text("Chats"),
+            ),
+            ListTile(
+              leading: const Icon(Icons.upload),
+              title: const Text("Upload Art"),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => UploadArtPage(
+                            loggedInUser: widget.loggedInUser,
+                          )),
+                );
+              },
+            ),
+            const Divider(),
+            ListTile(
+              leading: const Icon(Icons.logout),
+              title: const Text("Log Out"),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => LoginPage()),
+                );
+              },
+            ),
+          ],
+        ),
       ),
       body: Center(
         child: Container(
-          width: 300,
-          padding: const EdgeInsets.all(16.0),
+          width: 400,
+          height: 600,
+          padding: const EdgeInsets.all(24.0),
           decoration: BoxDecoration(
             color: Colors.white,
-            border: Border.all(color: Colors.white, width: 2),
+            border: Border.all(color: Colors.grey.shade300, width: 1),
+            borderRadius: BorderRadius.circular(8),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.shade200,
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               // Display the artwork image
               Container(
-                height: 200,
+                height: 250,
                 decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8),
                   image: DecorationImage(
-                    image: NetworkImage(passedArtModel.artWorkPictureUri),
+                    image: AssetImage(widget.passedArtModel.artWorkPictureUri),
                     fit: BoxFit.cover,
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
               // Artwork name and artist
               Text(
-                '${passedArtModel.artWorkName} by $artistName',
+                '${capitalize(widget.passedArtModel.artWorkName)}',
                 style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
+                  color: Colors.black,
+                  fontSize: 20,
                   fontWeight: FontWeight.bold,
                 ),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 16),
-              // Dimensions and price buttons
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  ElevatedButton(
-                    onPressed: () {},
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                    ),
-                    child: Text(passedArtModel.artDimensions),
-                  ),
-                  ElevatedButton(
-                    onPressed: () {},
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                    ),
-                    child: Text('\$${passedArtModel.artPrice}'),
-                  ),
-                ],
+              const SizedBox(height: 4),
+              Text(
+                'by $artistName',
+                style: TextStyle(
+                  color: Colors.grey.shade600,
+                  fontSize: 16,
+                  fontStyle: FontStyle.italic,
+                ),
+                textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
+              // Dimensions and price
+              Text(
+                'Dimensions: ${widget.passedArtModel.artDimensions}',
+                style: const TextStyle(
+                  color: Colors.black,
+                  fontSize: 16,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Price: ${widget.passedArtModel.artPrice}',
+                style: const TextStyle(
+                  color: Colors.black,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 20),
               // Buy button
               ElevatedButton(
                 onPressed: () {
                   // TODO Navigate to payment page
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white,
+                  backgroundColor: Colors.black,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                 ),
-                child: const Text(
-                  'Buy',
-                  style: TextStyle(color: Colors.black),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.shopping_cart),
+                    const SizedBox(width: 8),
+                    const Text("Buy"),
+                  ],
                 ),
               ),
-              // Change details button (only if it's the user's art)
-              if (isUserArt)
-                ElevatedButton(
-                  onPressed: () {
-                    // TODO Handle changing details
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                  ),
-                  child: const Text(
-                    'Change Details',
-                    style: TextStyle(color: Colors.black),
-                  ),
-                ),
             ],
           ),
         ),

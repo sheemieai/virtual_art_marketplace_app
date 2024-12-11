@@ -39,7 +39,8 @@ class MyArtPageState extends State<MyArtPage> {
       //final apiKey = await firestoreDb.fetchPixabayApiKey();
       //final fetchedArtModels = await ArtModel.fetchArtModelsFromPixabay(apiKey);
       final int userId = widget.loggedInUser.userId;
-      final List<ArtModel> fetchedArtModels = await firestoreDb.getAllArtsByUserId(userId);
+      final List<ArtModel> fetchedArtModels =
+          await firestoreDb.getAllArtsByUserId(userId);
 
       setState(() {
         artModels = fetchedArtModels;
@@ -79,7 +80,7 @@ class MyArtPageState extends State<MyArtPage> {
               title: const Text("Home"),
               onTap: () {
                 /*
-                Navigator.pushReplacement(
+                Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => MainPage()),
                 );
@@ -91,7 +92,7 @@ class MyArtPageState extends State<MyArtPage> {
               title: Text("Favorites"),
               /*
               onTap: () {
-                Navigator.pushReplacement(
+                Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => FavoriteArtPage()),
                 );
@@ -102,7 +103,7 @@ class MyArtPageState extends State<MyArtPage> {
               leading: const Icon(Icons.shopping_cart),
               title: const Text("Cart"),
               onTap: () {
-                Navigator.pushReplacement(
+                Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => ShoppingCartPage()),
                 );
@@ -112,7 +113,7 @@ class MyArtPageState extends State<MyArtPage> {
               leading: const Icon(Icons.chat),
               title: const Text("Chats"),
               // onTap: () {
-              //   Navigator.pushReplacement(
+              //   Navigator.push(
               //     context,
               //     MaterialPageRoute(builder: (context) => ChatsPage()),
               //   );
@@ -122,9 +123,12 @@ class MyArtPageState extends State<MyArtPage> {
               leading: const Icon(Icons.upload),
               title: const Text("Upload Art"),
               onTap: () {
-                Navigator.pushReplacement(
+                Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => UploadArtPage()),
+                  MaterialPageRoute(
+                      builder: (context) => UploadArtPage(
+                            loggedInUser: widget.loggedInUser,
+                          )),
                 );
               },
             ),
@@ -133,7 +137,7 @@ class MyArtPageState extends State<MyArtPage> {
               leading: const Icon(Icons.logout),
               title: const Text("Log Out"),
               onTap: () {
-                Navigator.pushReplacement(
+                Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => LoginPage()),
                 );
@@ -144,95 +148,98 @@ class MyArtPageState extends State<MyArtPage> {
       ),
       body: isLoading
           ? const Center(
-        child: CircularProgressIndicator(),
-      )
+              child: CircularProgressIndicator(),
+            )
           : errorMessage.isNotEmpty
-          ? Center(
-        child: Text(
-          errorMessage,
-          style: const TextStyle(color: Colors.red),
-        ),
-      )
-          : Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 16.0),
-            Container(
-              height: 200,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: Colors.grey[400],
-                image: randomArtModel != null
-                    ? DecorationImage(
-                  image: AssetImage(
-                    randomArtModel!.artWorkPictureUri,
+              ? Center(
+                  child: Text(
+                    errorMessage,
+                    style: const TextStyle(color: Colors.red),
                   ),
-                  fit: BoxFit.cover,
                 )
-                    : null,
-              ),
-              child: randomArtModel == null
-                  ? const Center(
-                child: Text(
-                  "Picture",
-                  style: TextStyle(
-                    fontSize: 18,
-                    color: Colors.black54,
-                  ),
-                ),
-              )
-                  : null,
-            ),
-            const SizedBox(height: 16.0),
-            Text(
-              "Welcome, ${widget.loggedInUser.userName}",
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 16.0),
-            Expanded(
-              child: GridView.builder(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 3,
-                  mainAxisSpacing: 10.0,
-                  crossAxisSpacing: 10.0,
-                  childAspectRatio: 1.0,
-                ),
-                itemCount: artModels.length,
-                itemBuilder: (context, index) {
-                  final artModel = artModels[index];
-                  return GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => DisplayArtPage(
-                            passedArtModel: artModel,
-                          ),
+              : Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 16.0),
+                      Container(
+                        height: 200,
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[400],
+                          image: randomArtModel != null
+                              ? DecorationImage(
+                                  image: AssetImage(
+                                    randomArtModel!.artWorkPictureUri,
+                                  ),
+                                  fit: BoxFit.cover,
+                                )
+                              : null,
                         ),
-                      );
-                    },
-                    child: Container(
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey),
-                        borderRadius: BorderRadius.circular(8.0),
-                        image: DecorationImage(
-                          image: AssetImage(artModel.artWorkPictureUri),
-                          fit: BoxFit.cover,
+                        child: randomArtModel == null
+                            ? const Center(
+                                child: Text(
+                                  "Picture",
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    color: Colors.black54,
+                                  ),
+                                ),
+                              )
+                            : null,
+                      ),
+                      const SizedBox(height: 16.0),
+                      Text(
+                        "Welcome, ${widget.loggedInUser.userName}",
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                    ),
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
+                      const SizedBox(height: 16.0),
+                      Expanded(
+                        child: GridView.builder(
+                          gridDelegate:
+                              const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 3,
+                            mainAxisSpacing: 10.0,
+                            crossAxisSpacing: 10.0,
+                            childAspectRatio: 1.0,
+                          ),
+                          itemCount: artModels.length,
+                          itemBuilder: (context, index) {
+                            final artModel = artModels[index];
+                            return GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => DisplayArtPage(
+                                      passedArtModel: artModel,
+                                      loggedInUser: widget.loggedInUser,
+                                    ),
+                                  ),
+                                );
+                              },
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: Colors.grey),
+                                  borderRadius: BorderRadius.circular(8.0),
+                                  image: DecorationImage(
+                                    image:
+                                        AssetImage(artModel.artWorkPictureUri),
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
     );
   }
 }

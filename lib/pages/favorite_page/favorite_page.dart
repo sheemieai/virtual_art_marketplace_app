@@ -38,7 +38,8 @@ class FavoriteArtPageState extends State<FavoriteArtPage> {
       //final apiKey = await firestoreDb.fetchPixabayApiKey();
       //final fetchedArtModels = await ArtModel.fetchArtModelsFromPixabay(apiKey);
       final int userId = widget.loggedInUser.userId;
-      final List<ArtModel> fetchedArtModels = await firestoreDb.getAllFavoriteArtsByUserId(userId);
+      final List<ArtModel> fetchedArtModels =
+          await firestoreDb.getAllFavoriteArtsByUserId(userId);
       setState(() {
         favoriteArtModels = fetchedArtModels;
         filteredArtModels = fetchedArtModels;
@@ -57,7 +58,7 @@ class FavoriteArtPageState extends State<FavoriteArtPage> {
       searchQuery = query;
       filteredArtModels = favoriteArtModels
           .where((artModel) =>
-          artModel.artWorkName.toLowerCase().contains(query.toLowerCase()))
+              artModel.artWorkName.toLowerCase().contains(query.toLowerCase()))
           .toList();
     });
   }
@@ -84,37 +85,36 @@ class FavoriteArtPageState extends State<FavoriteArtPage> {
               leading: const Icon(Icons.home),
               title: const Text("Home"),
               onTap: () {
-                /*
-                Navigator.pushReplacement(
+                Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const MainPage()),
+                  MaterialPageRoute(
+                      builder: (context) => MainPage(
+                            loggedInUser: widget.loggedInUser,
+                          )),
                 );
-
-                 */
               },
             ),
-            const ListTile(
+            ListTile(
               leading: Icon(Icons.palette),
               title: Text("My Art"),
-              /*
               onTap: () {
-                Navigator.pushReplacement(
+                Navigator.push(
                   context,
                   MaterialPageRoute(
                       builder: (context) => MyArtPage(
-                        loggedInUser: widget.loggedInUser,
-                      )),
+                            loggedInUser: widget.loggedInUser,
+                          )),
                 );
               },
-                  */
             ),
             ListTile(
               leading: const Icon(Icons.shopping_cart),
               title: const Text("Cart"),
               onTap: () {
-                Navigator.pushReplacement(
+                Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const ShoppingCartPage()),
+                  MaterialPageRoute(
+                      builder: (context) => const ShoppingCartPage()),
                 );
               },
             ),
@@ -122,7 +122,7 @@ class FavoriteArtPageState extends State<FavoriteArtPage> {
               leading: const Icon(Icons.chat),
               title: const Text("Chats"),
               // onTap: () {
-              //   Navigator.pushReplacement(
+              //   Navigator.push(
               //     context,
               //     MaterialPageRoute(builder: (context) => const ChatsPage()),
               //   );
@@ -132,10 +132,12 @@ class FavoriteArtPageState extends State<FavoriteArtPage> {
               leading: const Icon(Icons.upload),
               title: const Text("Upload Art"),
               onTap: () {
-                Navigator.pushReplacement(
+                Navigator.push(
                   context,
                   MaterialPageRoute(
-                      builder: (context) => const UploadArtPage()),
+                      builder: (context) => UploadArtPage(
+                            loggedInUser: widget.loggedInUser,
+                          )),
                 );
               },
             ),
@@ -144,7 +146,7 @@ class FavoriteArtPageState extends State<FavoriteArtPage> {
               leading: const Icon(Icons.logout),
               title: const Text("Log Out"),
               onTap: () {
-                Navigator.pushReplacement(
+                Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => LoginPage()),
                 );
@@ -156,84 +158,86 @@ class FavoriteArtPageState extends State<FavoriteArtPage> {
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : errorMessage.isNotEmpty
-          ? Center(
-        child: Text(
-          errorMessage,
-          style: const TextStyle(color: Colors.red),
-        ),
-      )
-          : Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            TextField(
-              onChanged: filterArtModels,
-              decoration: InputDecoration(
-                labelText: "Search",
-                hintText: "Search art by name",
-                prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16.0),
-            Expanded(
-              child: ListView.builder(
-                itemCount: filteredArtModels.length,
-                itemBuilder: (context, index) {
-                  final artModel = filteredArtModels[index];
-                  return GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => DisplayArtPage(
-                            passedArtModel: artModel,
-                          ),
-                        ),
-                      );
-                    },
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          height: 200,
-                          width: double.infinity,
-                          decoration: BoxDecoration(
-                            border: Border.all(color: Colors.grey),
+              ? Center(
+                  child: Text(
+                    errorMessage,
+                    style: const TextStyle(color: Colors.red),
+                  ),
+                )
+              : Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    children: [
+                      TextField(
+                        onChanged: filterArtModels,
+                        decoration: InputDecoration(
+                          labelText: "Search",
+                          hintText: "Search art by name",
+                          prefixIcon: const Icon(Icons.search),
+                          border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8.0),
-                            image: DecorationImage(
-                              image: AssetImage(artModel.artWorkPictureUri),
-                              fit: BoxFit.cover,
-                            ),
                           ),
                         ),
-                        const SizedBox(height: 8.0),
-                        Text(
-                          artModel.artWorkName,
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
+                      ),
+                      const SizedBox(height: 16.0),
+                      Expanded(
+                        child: ListView.builder(
+                          itemCount: filteredArtModels.length,
+                          itemBuilder: (context, index) {
+                            final artModel = filteredArtModels[index];
+                            return GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => DisplayArtPage(
+                                      passedArtModel: artModel,
+                                      loggedInUser: widget.loggedInUser,
+                                    ),
+                                  ),
+                                );
+                              },
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Container(
+                                    height: 200,
+                                    width: double.infinity,
+                                    decoration: BoxDecoration(
+                                      border: Border.all(color: Colors.grey),
+                                      borderRadius: BorderRadius.circular(8.0),
+                                      image: DecorationImage(
+                                        image: AssetImage(
+                                            artModel.artWorkPictureUri),
+                                        fit: BoxFit.cover,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8.0),
+                                  Text(
+                                    artModel.artWorkName,
+                                    style: const TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  Text(
+                                    artModel.artPrice,
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                  const Divider(height: 32.0),
+                                ],
+                              ),
+                            );
+                          },
                         ),
-                        Text(
-                          artModel.artPrice,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            color: Colors.grey,
-                          ),
-                        ),
-                        const Divider(height: 32.0),
-                      ],
-                    ),
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
+                      ),
+                    ],
+                  ),
+                ),
     );
   }
 }
