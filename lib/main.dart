@@ -42,11 +42,53 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final List<ArtModel> artItems = [
+      ArtModel(
+        id: 'art1',
+        artId: 101,
+        artWorkPictureUri: 'https://example.com/1.jpg',
+        artWorkName: 'Starry Night',
+        artWorkCreator: UserModel(
+          id: 'user1',
+          userId: 1,
+          userEmail: 'artist@example.com',
+          userName: 'Vincent van Gogh',
+          userMoney: '5000',
+          userPictureUri: 'lib/img/user/photos/artist.jpg',
+          registrationDatetime: DateTime.now(),
+        ),
+        artDimensions: '50x60cm',
+        artPrice: '\$1000',
+        artType: 'Painting',
+        artFavoriteStatusUserList: [],
+      ),
+      ArtModel(
+        id: 'art2',
+        artId: 102,
+        artWorkPictureUri: 'https://example.com/2.jpg',
+        artWorkName: 'Mona Lisa',
+        artWorkCreator: UserModel(
+          id: 'user2',
+          userId: 2,
+          userEmail: 'artist2@example.com',
+          userName: 'Leonardo da Vinci',
+          userMoney: '2000',
+          userPictureUri: 'lib/img/user/photos/artist2.jpg',
+          registrationDatetime: DateTime.now(),
+        ),
+        artDimensions: '40x60cm',
+        artPrice: '\$1500',
+        artType: 'Painting',
+        artFavoriteStatusUserList: [],
+      ),
+    ];
     // List of pages
     final List<Widget> pages = [
       LoginPage(), // 0
-      ChatsPage(), // 1
-      ChatRoomPage(chatRoomName: '',), // 2
+      ChatsPage(loggedInUser: fakeUser), // 1
+      ChatRoomPage(
+        chatRoomName: '',
+      ), // 2
       UploadArtPage(), // 3
       DisplayArtPage(
         // fake art model
@@ -79,7 +121,9 @@ class MyApp extends StatelessWidget {
         loggedInUser: fakeUser,
       ), // 6
       ShoppingCartPage(), // 7
-      PaymentPage(), // 8
+      PaymentPage(
+        loggedInUser: fakeUser,
+      ), // 8
       SettingsPage(), // 9
       MainPage(
         loggedInUser: fakeUser,
@@ -91,7 +135,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.deepPurple,
       ),
-      home: pages[6],
+      home: pages[8],
     );
   }
 }
