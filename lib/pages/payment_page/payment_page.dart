@@ -1,19 +1,54 @@
 import 'package:flutter/material.dart';
 import 'package:virtual_marketplace_app/models/art_model/art_model.dart';
+import 'package:virtual_marketplace_app/models/payment_model/purchase_art_model.dart';
+import 'package:virtual_marketplace_app/models/user_model/user_model.dart';
 import 'package:virtual_marketplace_app/pages/payment_page/shopping_cart/shopping_cart_page.dart';
+import 'package:virtual_marketplace_app/db/firestore_db.dart';
 
 class PaymentPage extends StatefulWidget {
-  final List<ArtModel> artItems;
+  final UserModel loggedInUser;
 
-  const PaymentPage({Key? key, required this.artItems}) : super(key: key);
+  const PaymentPage({Key? key, required this.loggedInUser}) : super(key: key);
 
   @override
   _PaymentPageState createState() => _PaymentPageState();
 }
 
 class _PaymentPageState extends State<PaymentPage> {
-  double currentBalance = 20;
+  final FirebaseDb firebaseDb = FirebaseDb();
+
+  double currentBalance = 0;
   final TextEditingController expiryDateController = TextEditingController();
+  UserModel? currentUser;
+  List<ArtModel> userArts = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeUserBalance();
+    _fetchUserArts();
+    calculateTotalPrice();
+  }
+
+  // Fetch the current user money balance
+  Future<void> _initializeUserBalance() async {
+    setState(() {
+      currentBalance = widget.loggedInUser.userMoney as double;
+    });
+  }
+
+  // Fetch the current user art models
+  Future<void> _fetchUserArts() async {
+    try {
+      List<ArtModel> arts =
+          await firebaseDb.getAllArtsByUserId(widget.loggedInUser.userId);
+      setState(() {
+        userArts = arts;
+      });
+    } catch (e) {
+      print("Error fetching user arts: $e");
+    }
+  }
 
   @override
   void dispose() {
@@ -21,18 +56,21 @@ class _PaymentPageState extends State<PaymentPage> {
     super.dispose();
   }
 
+  // Fetch the total price of art models
   double calculateTotalPrice() {
-    return widget.artItems.fold(
+    return userArts.fold(
       0,
       (sum, item) =>
           sum +
-          double.tryParse(item.artPrice.replaceAll(RegExp(r'[^\d.]'), ''))!,
+          (double.tryParse(item.artPrice.replaceAll(RegExp(r'[^\d.]'), '')) ??
+              0),
     );
   }
 
+  // add funds to current balance
   void addFunds() {
     setState(() {
-      currentBalance += 20; // Example: Add $20
+      currentBalance += 20;
     });
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
@@ -41,16 +79,40 @@ class _PaymentPageState extends State<PaymentPage> {
     );
   }
 
-  void makePayment(double totalPrice) {
+  void makePayment(double totalPrice) async {
     if (currentBalance >= totalPrice) {
-      setState(() {
-        currentBalance -= totalPrice;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Payment Successful!'),
-        ),
-      );
+      try {
+        setState(() {
+          currentBalance -= totalPrice;
+        });
+
+        // Process each art item in the user's cart
+        for (ArtModel art in userArts) {
+          // Create a PurchaseArtModel for the current item
+          final purchaseArt = PurchaseArtModel(
+            id: "",
+            artModel: art,
+            artWorkPurchaseDate: DateTime.now(),
+          );
+
+          // Add the purchase record to Firestore
+          await firebaseDb.addPurchaseArt(purchaseArt);
+        }
+
+        // Show success message
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Payment Successful!'),
+          ),
+        );
+      } catch (e) {
+        // Show error message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to process payment: $e'),
+          ),
+        );
+      }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -62,7 +124,7 @@ class _PaymentPageState extends State<PaymentPage> {
 
   @override
   Widget build(BuildContext context) {
-    double totalPrice = calculateTotalPrice(); // Get the total price
+    double totalPrice = calculateTotalPrice();
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -91,16 +153,17 @@ class _PaymentPageState extends State<PaymentPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // // Back Button
-                // IconButton(
-                //   icon: const Icon(Icons.arrow_back),
-                //   onPressed: () {
-                //     Navigator.pushReplacement(
-                //       context,
-                //       MaterialPageRoute(builder: (context) => const ShoppingCartPage()),
-                //     );
-                //   },
-                // ),
+                // Back Button
+                IconButton(
+                  icon: const Icon(Icons.arrow_back),
+                  onPressed: () {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const ShoppingCartPage()),
+                    );
+                  },
+                ),
                 const SizedBox(height: 16),
                 // Total Section
                 Center(
@@ -123,7 +186,7 @@ class _PaymentPageState extends State<PaymentPage> {
                     color: Colors.black,
                   ),
                 ),
-                ...widget.artItems.map((artItem) => Container(
+                ...userArts.map((artItem) => Container(
                       margin: const EdgeInsets.only(top: 8),
                       padding: const EdgeInsets.all(12),
                       width: double.infinity,
