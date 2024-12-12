@@ -6,6 +6,7 @@ import 'package:virtual_marketplace_app/db/firestore_db.dart';
 import 'package:virtual_marketplace_app/models/art_model/art_model.dart';
 import 'package:virtual_marketplace_app/models/cart_model/cart_model.dart';
 import 'package:virtual_marketplace_app/models/user_model/user_model.dart';
+import 'package:virtual_marketplace_app/pages/chat_page/chat_page.dart';
 import 'package:virtual_marketplace_app/pages/display_art_page/upload_art_page/upload_art_page.dart';
 import 'package:virtual_marketplace_app/pages/favorite_page/favorite_page.dart';
 import 'package:virtual_marketplace_app/pages/login_page/login_page.dart';
@@ -67,6 +68,13 @@ class DisplayArtPageState extends State<DisplayArtPage> {
         ),
       );
       print("Successfully completed _buyArt method.");
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => MainPage(loggedInUser: widget.loggedInUser),
+        ),
+      );
     } catch (e) {
       print("Error during _buyArt method: $e");
       ScaffoldMessenger.of(context).showSnackBar(
@@ -155,14 +163,23 @@ class DisplayArtPageState extends State<DisplayArtPage> {
                   context,
                   MaterialPageRoute(
                       builder: (context) => ShoppingCartPage(
-                        loggedInUser: widget.loggedInUser,
-                      )),
+                            loggedInUser: widget.loggedInUser,
+                          )),
                 );
               },
             ),
             ListTile(
               leading: const Icon(Icons.chat),
               title: const Text("Chats"),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => ChatsPage(
+                            loggedInUser: widget.loggedInUser,
+                          )),
+                );
+              },
             ),
             ListTile(
               leading: const Icon(Icons.upload),

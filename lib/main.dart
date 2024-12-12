@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:virtual_marketplace_app/models/chat_model/chat_page_model.dart';
+import 'package:virtual_marketplace_app/models/chat_model/chat_room_model.dart';
 import 'package:virtual_marketplace_app/pages/chat_page/chat_page.dart';
 import 'package:virtual_marketplace_app/pages/chat_page/chat_room_page/chat_room_page.dart';
 import 'package:virtual_marketplace_app/pages/display_art_page/display_art_page.dart';
@@ -25,7 +27,7 @@ void main() async {
   final FirebaseDb firebaseDb = FirebaseDb();
 
   // Fetch the fake user with id user-999001
-  final UserModel? fakeUser = await firebaseDb.getUser("user-999001");
+  final UserModel? fakeUser = await firebaseDb.getUser("user-999004");
 
   if (fakeUser == null) {
     print("Fake user with ID 999001 not found in Firestore. Exiting...");
@@ -47,9 +49,19 @@ class MyApp extends StatelessWidget {
       LoginPage(), // 0
       ChatsPage(loggedInUser: fakeUser), // 1
       ChatRoomPage(
-        chatRoomName: '',
-      ), // 2
-      UploadArtPage(loggedInUser: fakeUser,), // 3
+          loggedInUser: fakeUser,
+          passedChatPage: ChatPageModel(
+              id: "id-chat",
+              chatBoxId: 12345,
+              chatRoomName: "testroom",
+              loggedInUser: fakeUser,
+              userGettingMessage: fakeUser,
+              userGettingMessageIconUri: "",
+              lastMessageSent: "test_lastMessageSent",
+              lastMessageDate: DateTime.now())), // 2
+      UploadArtPage(
+        loggedInUser: fakeUser,
+      ), // 3
       DisplayArtPage(
         // fake art model
         passedArtModel: ArtModel(
@@ -100,7 +112,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.deepPurple,
       ),
-      home: pages[0],
+      home: pages[10],
     );
   }
 }

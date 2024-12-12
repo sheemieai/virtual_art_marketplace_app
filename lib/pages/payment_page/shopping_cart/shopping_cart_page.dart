@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:virtual_marketplace_app/models/cart_model/cart_model.dart';
+import 'package:virtual_marketplace_app/pages/chat_page/chat_page.dart';
 import '../../../db/firestore_db.dart';
 import '../../../models/art_model/art_model.dart';
 import '../../../models/user_model/user_model.dart';
@@ -14,7 +15,8 @@ import '../payment_page.dart';
 class ShoppingCartPage extends StatefulWidget {
   final UserModel loggedInUser;
 
-  const ShoppingCartPage({Key? key, required this.loggedInUser}) : super(key: key);
+  const ShoppingCartPage({Key? key, required this.loggedInUser})
+      : super(key: key);
   @override
   ShoppingCartPageState createState() => ShoppingCartPageState();
 }
@@ -33,8 +35,8 @@ class ShoppingCartPageState extends State<ShoppingCartPage> {
 
   Future<void> fetchCartItems() async {
     try {
-      final List<CartModel> dbCartItems = await firestoreDb
-          .getAllCartsByUserId(widget.loggedInUser.userId);
+      final List<CartModel> dbCartItems =
+          await firestoreDb.getAllCartsByUserId(widget.loggedInUser.userId);
       if (dbCartItems.isNotEmpty) {
         final cartList = dbCartItems.first;
         setState(() {
@@ -75,8 +77,8 @@ class ShoppingCartPageState extends State<ShoppingCartPage> {
 
   Future<void> removeItemFromCart(final int artIndex) async {
     try {
-      final List<CartModel> dbCartItems = await firestoreDb
-          .getAllCartsByUserId(widget.loggedInUser.userId);
+      final List<CartModel> dbCartItems =
+          await firestoreDb.getAllCartsByUserId(widget.loggedInUser.userId);
 
       if (dbCartItems.isNotEmpty) {
         final CartModel cartList = dbCartItems.first;
@@ -88,8 +90,21 @@ class ShoppingCartPageState extends State<ShoppingCartPage> {
 
         await firestoreDb.updateCart(updatedCartList);
 
-        final List<CartModel> refreshedCartItems = await firestoreDb
-            .getAllCartsByUserId(widget.loggedInUser.userId);
+        if (updatedArtList.isEmpty) {
+          await firestoreDb.updateCart(cartList.copyWith(artModelList: []));
+
+          setState(() {
+            cartArtList = [];
+            subtotal = 0;
+          });
+
+          await firestoreDb.deleteCart(cartList);
+          print("Cart cleared.");
+          return;
+        }
+
+        final List<CartModel> refreshedCartItems =
+            await firestoreDb.getAllCartsByUserId(widget.loggedInUser.userId);
 
         setState(() {
           cartArtList = refreshedCartItems.isNotEmpty
@@ -182,14 +197,23 @@ class ShoppingCartPageState extends State<ShoppingCartPage> {
                   context,
                   MaterialPageRoute(
                       builder: (context) => ShoppingCartPage(
-                        loggedInUser: widget.loggedInUser,
-                      )),
+                            loggedInUser: widget.loggedInUser,
+                          )),
                 );
               },
             ),
             ListTile(
               leading: const Icon(Icons.chat),
               title: const Text("Chats"),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => ChatsPage(
+                            loggedInUser: widget.loggedInUser,
+                          )),
+                );
+              },
             ),
             ListTile(
               leading: const Icon(Icons.upload),
@@ -199,8 +223,8 @@ class ShoppingCartPageState extends State<ShoppingCartPage> {
                   context,
                   MaterialPageRoute(
                       builder: (context) => UploadArtPage(
-                        loggedInUser: widget.loggedInUser,
-                      )),
+                            loggedInUser: widget.loggedInUser,
+                          )),
                 );
               },
             ),
@@ -237,55 +261,55 @@ class ShoppingCartPageState extends State<ShoppingCartPage> {
             child: cartArtList.isEmpty
                 ? const Center(child: Text("Your cart is empty."))
                 : ListView.builder(
-              itemCount: cartArtList.length,
-              itemBuilder: (context, index) {
-                final item = cartArtList[index];
-                return Container(
-                  margin: const EdgeInsets.symmetric(
-                      horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey[300]!),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(8),
-                    child: Row(
-                      children: [
-                        Container(
-                          height: 100,
-                          width: 100,
-                          decoration: BoxDecoration(
-                            border: Border.all(color: Colors.grey),
-                            borderRadius: BorderRadius.circular(8.0),
-                            image: DecorationImage(
-                              image: AssetImage(item.artWorkPictureUri),
-                              fit: BoxFit.cover,
-                            ),
-                          ),
+                    itemCount: cartArtList.length,
+                    itemBuilder: (context, index) {
+                      final item = cartArtList[index];
+                      return Container(
+                        margin: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey[300]!),
                         ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                        child: Padding(
+                          padding: const EdgeInsets.all(8),
+                          child: Row(
                             children: [
-                              Text(item.artWorkName,
-                                  style: const TextStyle(
-                                      fontWeight: FontWeight.bold)),
-                              Text(item.artPrice),
+                              Container(
+                                height: 100,
+                                width: 100,
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: Colors.grey),
+                                  borderRadius: BorderRadius.circular(8.0),
+                                  image: DecorationImage(
+                                    image: AssetImage(item.artWorkPictureUri),
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(item.artWorkName,
+                                        style: const TextStyle(
+                                            fontWeight: FontWeight.bold)),
+                                    Text(item.artPrice),
+                                  ],
+                                ),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.delete),
+                                onPressed: () {
+                                  removeItemFromCart(index);
+                                },
+                              ),
                             ],
                           ),
                         ),
-                        IconButton(
-                          icon: const Icon(Icons.delete),
-                          onPressed: () {
-                            removeItemFromCart(index);
-                          },
-                        ),
-                      ],
-                    ),
+                      );
+                    },
                   ),
-                );
-              },
-            ),
           ),
           Padding(
             padding: const EdgeInsets.all(16.0),
@@ -299,15 +323,15 @@ class ShoppingCartPageState extends State<ShoppingCartPage> {
                   onPressed: cartArtList.isEmpty
                       ? null
                       : () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => PaymentPage(
-                          loggedInUser: widget.loggedInUser,
-                        ),
-                      ),
-                    );
-                  },
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => PaymentPage(
+                                loggedInUser: widget.loggedInUser,
+                              ),
+                            ),
+                          );
+                        },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.black,
                     foregroundColor: Colors.white,

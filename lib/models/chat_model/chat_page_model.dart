@@ -23,7 +23,8 @@ class ChatPageModel {
   });
 
   // Create ChatPageModel instance from Firestore data
-  factory ChatPageModel.fromFirestore(Map<String, dynamic> data, String documentId) {
+  factory ChatPageModel.fromFirestore(
+      Map<String, dynamic> data, String documentId) {
     return ChatPageModel(
       id: documentId,
       chatBoxId: data["chatBoxId"] ?? 0,
@@ -55,5 +56,29 @@ class ChatPageModel {
       "lastMessageSent": lastMessageSent,
       "lastMessageDate": Timestamp.fromDate(lastMessageDate),
     };
+  }
+
+  // Copy with new chat page model details
+  ChatPageModel copyWith({
+    String? id,
+    int? chatBoxId,
+    String? chatRoomName,
+    UserModel? loggedInUser,
+    UserModel? userGettingMessage,
+    String? userGettingMessageIconUri,
+    String? lastMessageSent,
+    DateTime? lastMessageDate,
+  }) {
+    return ChatPageModel(
+      id: id ?? this.id,
+      chatBoxId: chatBoxId ?? this.chatBoxId,
+      chatRoomName: chatRoomName ?? this.chatRoomName,
+      loggedInUser: loggedInUser ?? this.loggedInUser,
+      userGettingMessage: userGettingMessage ?? this.userGettingMessage,
+      userGettingMessageIconUri:
+          userGettingMessageIconUri ?? this.userGettingMessageIconUri,
+      lastMessageSent: lastMessageSent ?? this.lastMessageSent,
+      lastMessageDate: lastMessageDate ?? this.lastMessageDate,
+    );
   }
 }

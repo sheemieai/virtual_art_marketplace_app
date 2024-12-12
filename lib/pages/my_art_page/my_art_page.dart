@@ -82,9 +82,10 @@ class MyArtPageState extends State<MyArtPage> {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => MainPage(
-                    loggedInUser: widget.loggedInUser,
-                  )),
+                  MaterialPageRoute(
+                      builder: (context) => MainPage(
+                            loggedInUser: widget.loggedInUser,
+                          )),
                 );
               },
             ),
@@ -94,9 +95,10 @@ class MyArtPageState extends State<MyArtPage> {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => FavoriteArtPage(
-                    loggedInUser: widget.loggedInUser,
-                  )),
+                  MaterialPageRoute(
+                      builder: (context) => FavoriteArtPage(
+                            loggedInUser: widget.loggedInUser,
+                          )),
                 );
               },
             ),
@@ -108,20 +110,23 @@ class MyArtPageState extends State<MyArtPage> {
                   context,
                   MaterialPageRoute(
                       builder: (context) => ShoppingCartPage(
-                        loggedInUser: widget.loggedInUser,
-                      )),
+                            loggedInUser: widget.loggedInUser,
+                          )),
                 );
               },
             ),
             ListTile(
               leading: const Icon(Icons.chat),
               title: const Text("Chats"),
-              // onTap: () {
-              //   Navigator.push(
-              //     context,
-              //     MaterialPageRoute(builder: (context) => ChatsPage()),
-              //   );
-              // },
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => ChatsPage(
+                            loggedInUser: widget.loggedInUser,
+                          )),
+                );
+              },
             ),
             ListTile(
               leading: const Icon(Icons.upload),

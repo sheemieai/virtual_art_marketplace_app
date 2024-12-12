@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:virtual_marketplace_app/db/firestore_db.dart';
 import 'package:virtual_marketplace_app/models/art_model/art_model.dart';
 import 'package:virtual_marketplace_app/models/user_model/user_model.dart';
+import 'package:virtual_marketplace_app/pages/chat_page/chat_page.dart';
 import 'package:virtual_marketplace_app/pages/favorite_page/favorite_page.dart';
 import 'package:virtual_marketplace_app/pages/login_page/login_page.dart';
 import 'package:virtual_marketplace_app/pages/main_page/main_page.dart';
@@ -135,6 +136,13 @@ class _UploadArtPageState extends State<UploadArtPage> {
     );
 
     await firebaseDb.addArt(model);
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => MainPage(loggedInUser: widget.loggedInUser),
+      ),
+    );
   }
 
   String getRandomLettersAndDigits() {
@@ -219,20 +227,23 @@ class _UploadArtPageState extends State<UploadArtPage> {
                   context,
                   MaterialPageRoute(
                       builder: (context) => ShoppingCartPage(
-                        loggedInUser: widget.loggedInUser,
-                      )),
+                            loggedInUser: widget.loggedInUser,
+                          )),
                 );
               },
             ),
             ListTile(
               leading: const Icon(Icons.chat),
               title: const Text("Chats"),
-              // onTap: () {
-              //   Navigator.push(
-              //     context,
-              //     MaterialPageRoute(builder: (context) => const ChatsPage()),
-              //   );
-              // },
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => ChatsPage(
+                            loggedInUser: widget.loggedInUser,
+                          )),
+                );
+              },
             ),
             const Divider(),
             ListTile(

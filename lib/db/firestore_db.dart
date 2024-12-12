@@ -323,10 +323,9 @@ class FirebaseDb {
   }
 
   // Update an existing ChatPageModel
-  Future<void> updateChatPage(
-      final String id, final ChatPageModel chatPage) async {
+  Future<void> updateChatPage(final ChatPageModel chatPage) async {
     try {
-      await chatPageCollection.doc(id).update(chatPage.toFirestore());
+      await chatPageCollection.doc(chatPage.id).update(chatPage.toFirestore());
       print("ChatPage updated successfully.");
     } catch (e) {
       print("Error updating ChatPage: $e");
@@ -378,6 +377,43 @@ class FirebaseDb {
     }
   }
 
+  // Get all ChatPageModels by User ID
+  Future<List<ChatPageModel>> getAllChatPagesByUserId(final int userId) async {
+    try {
+      QuerySnapshot querySnapshot = await chatPageCollection
+          .where("loggedInUser.userId", isEqualTo: userId)
+          .get();
+      return querySnapshot.docs
+          .map((doc) => ChatPageModel.fromFirestore(
+                doc.data() as Map<String, dynamic>,
+                doc.id,
+              ))
+          .toList();
+    } catch (e) {
+      print("Error fetching ChatPages for userId $userId: $e");
+      return [];
+    }
+  }
+
+  // get all chatPages based on chat box id
+  Future<List<ChatPageModel>> getAllChatPagesByChatBoxId(
+      final int chatBoxId) async {
+    try {
+      QuerySnapshot querySnapshot = await chatPageCollection
+          .where("chatBoxId", isEqualTo: chatBoxId)
+          .get();
+      return querySnapshot.docs
+          .map((doc) => ChatPageModel.fromFirestore(
+                doc.data() as Map<String, dynamic>,
+                doc.id,
+              ))
+          .toList();
+    } catch (e) {
+      print("Error fetching ChatPages for chatBoxId $chatBoxId: $e");
+      return [];
+    }
+  }
+
   /**
    * Chat Room Methods
    */
@@ -394,10 +430,9 @@ class FirebaseDb {
   }
 
   // Update an existing ChatRoomModel
-  Future<void> updateChatRoom(
-      final String id, final ChatRoomModel chatRoom) async {
+  Future<void> updateChatRoom(final ChatRoomModel chatRoom) async {
     try {
-      await chatRoomCollection.doc(id).update(chatRoom.toFirestore());
+      await chatRoomCollection.doc(chatRoom.id).update(chatRoom.toFirestore());
       print("ChatRoom updated successfully.");
     } catch (e) {
       print("Error updating ChatRoom: $e");
@@ -446,6 +481,50 @@ class FirebaseDb {
     } catch (e) {
       print("Error fetching ChatRooms: $e");
       return [];
+    }
+  }
+
+  // Get a single ChatRoomModel by chatBoxId
+  Future<ChatRoomModel?> getChatRoomByChatBoxId(final int chatBoxId) async {
+    try {
+      QuerySnapshot querySnapshot = await chatRoomCollection
+          .where("chatBoxId", isEqualTo: chatBoxId)
+          .limit(1)
+          .get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        final data = querySnapshot.docs.first.data() as Map<String, dynamic>;
+        return ChatRoomModel.fromFirestore(data, querySnapshot.docs.first.id);
+      } else {
+        print("ChatRoom not found with chatBoxId $chatBoxId.");
+        return null;
+      }
+    } catch (e) {
+      print("Error fetching ChatRoom by chatBoxId: $e");
+      return null;
+    }
+  }
+
+  // Get a single ChatRoomModel by chatBoxId and userId
+  Future<ChatRoomModel?> getChatRoomByChatBoxIdAndUserId(
+      final int chatBoxId, final int userId) async {
+    try {
+      QuerySnapshot querySnapshot = await chatRoomCollection
+          .where("chatBoxId", isEqualTo: chatBoxId)
+          .where("loggedInUser.userId", isEqualTo: userId)
+          .limit(1)
+          .get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        final data = querySnapshot.docs.first.data() as Map<String, dynamic>;
+        return ChatRoomModel.fromFirestore(data, querySnapshot.docs.first.id);
+      } else {
+        print("ChatRoom not found with chatBoxId $chatBoxId.");
+        return null;
+      }
+    } catch (e) {
+      print("Error fetching ChatRoom by chatBoxId: $e");
+      return null;
     }
   }
 

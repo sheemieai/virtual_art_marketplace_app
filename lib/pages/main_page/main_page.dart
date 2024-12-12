@@ -142,20 +142,23 @@ class MainPageState extends State<MainPage> {
                   context,
                   MaterialPageRoute(
                       builder: (context) => ShoppingCartPage(
-                        loggedInUser: widget.loggedInUser,
-                      )),
+                            loggedInUser: widget.loggedInUser,
+                          )),
                 );
               },
             ),
             ListTile(
               leading: const Icon(Icons.chat),
               title: const Text("Chats"),
-              // onTap: () {
-              //   Navigator.push(
-              //     context,
-              //     MaterialPageRoute(builder: (context) => const ChatsPage()),
-              //   );
-              // },
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => ChatsPage(
+                            loggedInUser: widget.loggedInUser,
+                          )),
+                );
+              },
             ),
             ListTile(
               leading: const Icon(Icons.upload),
