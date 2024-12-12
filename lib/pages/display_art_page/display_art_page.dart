@@ -12,6 +12,7 @@ import 'package:virtual_marketplace_app/pages/login_page/login_page.dart';
 import 'package:virtual_marketplace_app/pages/main_page/main_page.dart';
 import 'package:virtual_marketplace_app/pages/my_art_page/my_art_page.dart';
 import 'package:virtual_marketplace_app/pages/payment_page/shopping_cart/shopping_cart_page.dart';
+import 'package:virtual_marketplace_app/pages/settings_page/settings_page.dart';
 
 class DisplayArtPage extends StatefulWidget {
   final ArtModel passedArtModel;
@@ -153,7 +154,9 @@ class DisplayArtPageState extends State<DisplayArtPage> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                      builder: (context) => const ShoppingCartPage()),
+                      builder: (context) => ShoppingCartPage(
+                        loggedInUser: widget.loggedInUser,
+                      )),
                 );
               },
             ),
@@ -175,6 +178,19 @@ class DisplayArtPageState extends State<DisplayArtPage> {
               },
             ),
             const Divider(),
+            ListTile(
+              leading: Icon(Icons.settings),
+              title: Text("Settings"),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        SettingsPage(loggedInUser: widget.loggedInUser),
+                  ),
+                );
+              },
+            ),
             ListTile(
               leading: const Icon(Icons.logout),
               title: const Text("Log Out"),

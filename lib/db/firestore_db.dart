@@ -642,11 +642,11 @@ class FirebaseDb {
     }
   }
 
-  // Delete a CartModel by ID
-  Future<void> deleteCart(final String id) async {
+  // Delete a CartModel
+  Future<void> deleteCart(final CartModel cartModel) async {
     try {
-      await cartCollection.doc(id).delete();
-      print("Cart deleted successfully.");
+      await cartCollection.doc(cartModel.id).delete();
+      print("Cart deleted successfully: ${cartModel.id}");
     } catch (e) {
       print("Error deleting cart: $e");
       throw Exception("Failed to delete cart.");
@@ -671,7 +671,7 @@ class FirebaseDb {
     }
   }
 
-  // Get all ArtModels for a specific user
+  // Get all ArtModels for a specific user in the CartModel
   Future<List<ArtModel>> getAllArtModelsByUserId(final int userId) async {
     try {
       QuerySnapshot querySnapshot =

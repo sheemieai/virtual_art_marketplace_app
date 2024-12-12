@@ -81,11 +81,15 @@ class MyApp extends StatelessWidget {
         // fake user for testing
         loggedInUser: fakeUser,
       ), // 6
-      ShoppingCartPage(), // 7
+      ShoppingCartPage(
+        loggedInUser: fakeUser,
+      ), // 7
       PaymentPage(
         loggedInUser: fakeUser,
       ), // 8
-      SettingsPage(), // 9
+      SettingsPage(
+        loggedInUser: fakeUser,
+      ), // 9
       MainPage(
         loggedInUser: fakeUser,
       ), // 10
@@ -96,7 +100,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.deepPurple,
       ),
-      home: pages[8],
+      home: pages[0],
     );
   }
 }

@@ -35,4 +35,17 @@ class CartModel {
       "artModelList": artModelList.map((art) => art.toFirestore()).toList(),
     };
   }
+
+  // Copy with new cart model details
+  CartModel copyWith({
+    String? id,
+    UserModel? user,
+    List<ArtModel>? artModelList,
+  }) {
+    return CartModel(
+      id: id ?? this.id,
+      user: user ?? this.user,
+      artModelList: artModelList ?? this.artModelList,
+    );
+  }
 }

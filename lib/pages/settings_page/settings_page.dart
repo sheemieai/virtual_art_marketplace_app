@@ -5,6 +5,10 @@ import '../../models/user_model/user_model.dart';
 import '../main_page/main_page.dart';
 
 class SettingsPage extends StatefulWidget {
+  final UserModel loggedInUser;
+
+  const SettingsPage({Key? key, required this.loggedInUser}) : super(key: key);
+
   @override
   SettingsPageState createState() => SettingsPageState();
 }
@@ -108,12 +112,11 @@ class SettingsPageState extends State<SettingsPage> {
         SnackBar(content: Text(userExists ? "User details updated successfully!" :
         "User added successfully!")),
       );
-/*
       Navigator.of(context).push(
-        MaterialPageRoute(builder: (context) => MainPage()),
+        MaterialPageRoute(builder: (context) => MainPage(
+          loggedInUser: widget.loggedInUser,
+        )),
       );
-
- */
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Error updating user details: ${e.toString()}")),

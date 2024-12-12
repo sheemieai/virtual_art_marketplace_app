@@ -9,6 +9,7 @@ import 'package:virtual_marketplace_app/pages/main_page/main_page.dart';
 import 'package:virtual_marketplace_app/pages/my_art_page/my_art_page.dart';
 import 'package:virtual_marketplace_app/pages/payment_page/shopping_cart/shopping_cart_page.dart';
 import '../display_art_page/display_art_page.dart';
+import '../settings_page/settings_page.dart';
 
 class FavoriteArtPage extends StatefulWidget {
   final UserModel loggedInUser;
@@ -114,7 +115,9 @@ class FavoriteArtPageState extends State<FavoriteArtPage> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                      builder: (context) => const ShoppingCartPage()),
+                      builder: (context) => ShoppingCartPage(
+                        loggedInUser: widget.loggedInUser,
+                      )),
                 );
               },
             ),
@@ -142,6 +145,19 @@ class FavoriteArtPageState extends State<FavoriteArtPage> {
               },
             ),
             const Divider(),
+            ListTile(
+              leading: Icon(Icons.settings),
+              title: Text("Settings"),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        SettingsPage(loggedInUser: widget.loggedInUser),
+                  ),
+                );
+              },
+            ),
             ListTile(
               leading: const Icon(Icons.logout),
               title: const Text("Log Out"),

@@ -151,15 +151,27 @@ class LoginPageState extends State<LoginPage> {
         final userExistsInDatabase = await firebaseDb.checkIfUserExists(userId);
 
         if (userExistsInDatabase) {
-          /*
-          Navigator.of(context).push(
-            MaterialPageRoute(builder: (context) => const MainPage()),
+          final existingUser = await firebaseDb.getUser(userId);
+          if (existingUser != null) {
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (context) => MainPage(loggedInUser: existingUser)),
+            );
+          }
+        } else {
+          final newUser = UserModel(
+            id: userId,
+            userId: int.parse(userId.hashCode.toString().substring(0, 6)),
+            userEmail: email,
+            userName: email.split("@")[0],
+            userMoney: "0",
+            userPictureUri: "lib/img/user/jellyfishProfilePic.png",
+            registrationDatetime: DateTime.now(),
           );
 
-           */
-        } else {
+          await firebaseDb.addUser(newUser);
+
           Navigator.of(context).push(
-            MaterialPageRoute(builder: (context) => SettingsPage()),
+            MaterialPageRoute(builder: (context) => SettingsPage(loggedInUser: newUser)),
           );
         }
       }

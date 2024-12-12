@@ -10,6 +10,7 @@ import 'package:virtual_marketplace_app/pages/login_page/login_page.dart';
 import 'package:virtual_marketplace_app/pages/main_page/main_page.dart';
 import 'package:virtual_marketplace_app/pages/payment_page/shopping_cart/shopping_cart_page.dart';
 import '../display_art_page/display_art_page.dart';
+import '../settings_page/settings_page.dart';
 
 class MyArtPage extends StatefulWidget {
   final UserModel loggedInUser;
@@ -79,25 +80,25 @@ class MyArtPageState extends State<MyArtPage> {
               leading: const Icon(Icons.home),
               title: const Text("Home"),
               onTap: () {
-                /*
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => MainPage()),
+                  MaterialPageRoute(builder: (context) => MainPage(
+                    loggedInUser: widget.loggedInUser,
+                  )),
                 );
-                 */
               },
             ),
-            const ListTile(
+            ListTile(
               leading: Icon(Icons.favorite),
               title: Text("Favorites"),
-              /*
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => FavoriteArtPage()),
+                  MaterialPageRoute(builder: (context) => FavoriteArtPage(
+                    loggedInUser: widget.loggedInUser,
+                  )),
                 );
               },
-                  */
             ),
             ListTile(
               leading: const Icon(Icons.shopping_cart),
@@ -105,7 +106,10 @@ class MyArtPageState extends State<MyArtPage> {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => ShoppingCartPage()),
+                  MaterialPageRoute(
+                      builder: (context) => ShoppingCartPage(
+                        loggedInUser: widget.loggedInUser,
+                      )),
                 );
               },
             ),
@@ -133,6 +137,19 @@ class MyArtPageState extends State<MyArtPage> {
               },
             ),
             const Divider(),
+            ListTile(
+              leading: Icon(Icons.settings),
+              title: Text("Settings"),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        SettingsPage(loggedInUser: widget.loggedInUser),
+                  ),
+                );
+              },
+            ),
             ListTile(
               leading: const Icon(Icons.logout),
               title: const Text("Log Out"),

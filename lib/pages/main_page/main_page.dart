@@ -10,6 +10,7 @@ import '../display_art_page/display_art_page.dart';
 import '../display_art_page/upload_art_page/upload_art_page.dart';
 import '../login_page/login_page.dart';
 import '../payment_page/shopping_cart/shopping_cart_page.dart';
+import '../settings_page/settings_page.dart';
 
 class MainPage extends StatefulWidget {
   final UserModel loggedInUser;
@@ -140,7 +141,9 @@ class MainPageState extends State<MainPage> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                      builder: (context) => const ShoppingCartPage()),
+                      builder: (context) => ShoppingCartPage(
+                        loggedInUser: widget.loggedInUser,
+                      )),
                 );
               },
             ),
@@ -168,6 +171,19 @@ class MainPageState extends State<MainPage> {
               },
             ),
             const Divider(),
+            ListTile(
+              leading: Icon(Icons.settings),
+              title: Text("Settings"),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        SettingsPage(loggedInUser: widget.loggedInUser),
+                  ),
+                );
+              },
+            ),
             ListTile(
               leading: const Icon(Icons.logout),
               title: const Text("Log Out"),
@@ -222,7 +238,7 @@ class MainPageState extends State<MainPage> {
                               )
                             : null,
                       ),
-                      const SizedBox(height: 16.0),
+                      const SizedBox(height: 24.0),
                       ...artTypes
                           .map((artType) => buildArtTypeSection(artType))
                           .toList(),
