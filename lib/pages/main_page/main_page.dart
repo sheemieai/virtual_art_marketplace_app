@@ -76,7 +76,7 @@ class MainPageState extends State<MainPage> {
     }
   }
 
-  Future<void> toggleFavorite(ArtModel artModel) async {
+  Future<void> toggleFavorite(final ArtModel artModel) async {
     final userId = widget.loggedInUser.userId;
 
     setState(() {

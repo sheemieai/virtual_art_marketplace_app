@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:virtual_marketplace_app/db/firestore_db.dart';
 import 'package:virtual_marketplace_app/models/art_model/art_model.dart';
@@ -8,6 +9,7 @@ import 'package:virtual_marketplace_app/pages/login_page/login_page.dart';
 import 'package:virtual_marketplace_app/pages/main_page/main_page.dart';
 import 'package:virtual_marketplace_app/pages/my_art_page/my_art_page.dart';
 import 'package:virtual_marketplace_app/pages/payment_page/shopping_cart/shopping_cart_page.dart';
+import '../../models/cart_model/cart_model.dart';
 import '../display_art_page/display_art_page.dart';
 import '../settings_page/settings_page.dart';
 
@@ -21,7 +23,7 @@ class FavoriteArtPage extends StatefulWidget {
 }
 
 class FavoriteArtPageState extends State<FavoriteArtPage> {
-  final FirebaseDb firestoreDb = FirebaseDb();
+  final FirebaseDb firebaseDb = FirebaseDb();
   List<ArtModel> favoriteArtModels = [];
   List<ArtModel> filteredArtModels = [];
   bool isLoading = true;
@@ -36,11 +38,12 @@ class FavoriteArtPageState extends State<FavoriteArtPage> {
 
   Future<void> fetchFavoriteArtData() async {
     try {
-      //final apiKey = await firestoreDb.fetchPixabayApiKey();
+      //final apiKey = await firebaseDb.fetchPixabayApiKey();
       //final fetchedArtModels = await ArtModel.fetchArtModelsFromPixabay(apiKey);
       final int userId = widget.loggedInUser.userId;
       final List<ArtModel> fetchedArtModels =
-          await firestoreDb.getAllFavoriteArtsByUserId(userId);
+          await firebaseDb.getAllFavoriteArtsByUserId(userId);
+
       setState(() {
         favoriteArtModels = fetchedArtModels;
         filteredArtModels = fetchedArtModels;
@@ -62,6 +65,77 @@ class FavoriteArtPageState extends State<FavoriteArtPage> {
               artModel.artWorkName.toLowerCase().contains(query.toLowerCase()))
           .toList();
     });
+  }
+
+  Future<void> toggleFavorite(final ArtModel artModel) async {
+    final userId = widget.loggedInUser.userId;
+
+    setState(() {
+      if (artModel.artFavoriteStatusUserList.contains(userId)) {
+        artModel.artFavoriteStatusUserList.remove(userId);
+      } else {
+        artModel.artFavoriteStatusUserList.add(userId);
+      }
+    });
+
+    try {
+      await firebaseDb.updateFavoriteArt(artModel);
+      print("Favorite status updated for art: ${artModel.id}");
+    } catch (e) {
+      print("Error updating favorite status: $e");
+    }
+  }
+
+  Future<void> buyArt(final ArtModel artModel) async {
+    final List<ArtModel> oldArtModelList =
+    await firebaseDb.getAllArtModelsByUserId(widget.loggedInUser.userId);
+
+    try {
+      if (oldArtModelList.isEmpty) {
+        oldArtModelList.add(artModel);
+
+        final CartModel newCartModel = CartModel(
+          id: getRandomLettersAndDigits(),
+          user: widget.loggedInUser,
+          artModelList: oldArtModelList,
+        );
+
+        await firebaseDb.addCart(newCartModel);
+      } else {
+        final List<CartModel> cartModelList =
+        await firebaseDb.getAllCartsByUserId(widget.loggedInUser.userId);
+
+        final CartModel oldCartModel = cartModelList.first;
+
+        oldCartModel.artModelList.add(artModel);
+
+        await firebaseDb.updateCart(oldCartModel);
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("You have successfully bought the artwork!"),
+          duration: Duration(seconds: 3),
+        ),
+      );
+      print("Successfully completed buyArt method.");
+    } catch (e) {
+      print("Error during _buyArt method: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Failed to complete purchase. Please try again.'),
+          duration: Duration(seconds: 3),
+        ),
+      );
+    }
+  }
+
+  String getRandomLettersAndDigits() {
+    const characters =
+        'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    final random = Random();
+    return List.generate(
+        6, (_) => characters[random.nextInt(characters.length)]).join();
   }
 
   @override
@@ -226,26 +300,60 @@ class FavoriteArtPageState extends State<FavoriteArtPage> {
                                       border: Border.all(color: Colors.grey),
                                       borderRadius: BorderRadius.circular(8.0),
                                       image: DecorationImage(
-                                        image: AssetImage(
-                                            artModel.artWorkPictureUri),
+                                        image: AssetImage(artModel.artWorkPictureUri),
                                         fit: BoxFit.cover,
                                       ),
                                     ),
                                   ),
                                   const SizedBox(height: 8.0),
-                                  Text(
-                                    artModel.artWorkName,
-                                    style: const TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  Text(
-                                    artModel.artPrice,
-                                    style: const TextStyle(
-                                      fontSize: 16,
-                                      color: Colors.grey,
-                                    ),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            artModel.artWorkName,
+                                            style: const TextStyle(
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          Text(
+                                            artModel.artPrice,
+                                            style: const TextStyle(
+                                              fontSize: 16,
+                                              color: Colors.grey,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      Row(
+                                        children: [
+                                          IconButton(
+                                            onPressed: () async {
+                                              await toggleFavorite(artModel);
+                                              await fetchFavoriteArtData();
+                                            },
+                                            icon: Icon(
+                                              artModel.artFavoriteStatusUserList.contains(widget.loggedInUser.userId)
+                                                  ? Icons.favorite
+                                                  : Icons.favorite_border,
+                                              color: Colors.red,
+                                            ),
+                                          ),
+                                          IconButton(
+                                            onPressed: () async {
+                                              await buyArt(artModel);
+                                            },
+                                            icon: const Icon(
+                                              Icons.shopping_cart_outlined,
+                                              color: Colors.black,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
                                   ),
                                   const Divider(height: 32.0),
                                 ],
