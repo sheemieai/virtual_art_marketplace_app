@@ -146,9 +146,13 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Chatting with " +
-            FakeUserCreatorHelper.capitalize(
-                widget.passedChatPage.userGettingMessage.userName)),
+        title: Text(
+          widget.passedChatPage.userGettingMessage.userName ==
+              widget.loggedInUser.userName
+              ? "Chatting with me"
+              : "Chatting with ${FakeUserCreatorHelper.capitalize(
+                  widget.passedChatPage.userGettingMessage.userName)}",
+        ),
         backgroundColor: Colors.white,
       ),
       drawer: Drawer(

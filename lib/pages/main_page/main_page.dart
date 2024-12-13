@@ -66,8 +66,13 @@ class MainPageState extends State<MainPage> {
 
   void categorizeArtByType() {
     for (var artType in artTypes) {
-      categorizedArt[artType] =
-          artModels.where((art) => art.artType == artType).take(15).toList();
+      final List<ArtModel> filteredArt = artModels
+          .where((art) => art.artType == artType)
+          .toList();
+
+      filteredArt.shuffle();
+
+      categorizedArt[artType] = filteredArt.take(15).toList();
     }
   }
 
@@ -94,7 +99,7 @@ class MainPageState extends State<MainPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Main Page"),
+        title: const Text("Home"),
         centerTitle: true,
       ),
       drawer: Drawer(

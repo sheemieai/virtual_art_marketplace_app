@@ -26,7 +26,6 @@ class _UploadArtPageState extends State<UploadArtPage> {
   String selectedArtType = "photo";
 
   final TextEditingController artworkNameController = TextEditingController();
-  final TextEditingController artistNameController = TextEditingController();
   final TextEditingController widthController = TextEditingController();
   final TextEditingController heightController = TextEditingController();
   final TextEditingController priceController = TextEditingController();
@@ -34,7 +33,6 @@ class _UploadArtPageState extends State<UploadArtPage> {
   @override
   void dispose() {
     artworkNameController.dispose();
-    artistNameController.dispose();
     widthController.dispose();
     heightController.dispose();
     priceController.dispose();
@@ -86,7 +84,6 @@ class _UploadArtPageState extends State<UploadArtPage> {
   Future<void> _submitImage() async {
     if (selectedImage == null ||
         artworkNameController.text.isEmpty ||
-        artistNameController.text.isEmpty ||
         widthController.text.isEmpty ||
         heightController.text.isEmpty ||
         priceController.text.isEmpty) {
@@ -102,26 +99,12 @@ class _UploadArtPageState extends State<UploadArtPage> {
       return;
     }
 
-    final UserModel? fakeUser = await firebaseDb.getUser("user-999001");
-    if (fakeUser == null) {
-      showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: const Text('Error'),
-            content: const Text('User not found'),
-          );
-        },
-      );
-      return;
-    }
-
     final ArtModel model = ArtModel(
-      id: "art-${fakeUser.userId}-${getRandomLettersAndDigits()}",
+      id: "art-${widget.loggedInUser.userId}-${getRandomLettersAndDigits()}",
       artId: getRandomInteger(),
       artWorkPictureUri: selectedImage!,
       artWorkName: artworkNameController.text,
-      artWorkCreator: fakeUser,
+      artWorkCreator: widget.loggedInUser,
       artDimensions: "${widthController.text}x${heightController.text}",
       artPrice: "\$${priceController.text}",
       artType: selectedArtType,
@@ -336,15 +319,6 @@ class _UploadArtPageState extends State<UploadArtPage> {
                   controller: artworkNameController,
                   decoration: const InputDecoration(
                     labelText: 'Artwork Name',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                // Artist Name input
-                TextField(
-                  controller: artistNameController,
-                  decoration: const InputDecoration(
-                    labelText: 'Artist Name',
                     border: OutlineInputBorder(),
                   ),
                 ),

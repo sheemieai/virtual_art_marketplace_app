@@ -114,19 +114,22 @@ class _ChatsPageState extends State<ChatsPage> {
         lastMessageDate: DateTime.now(),
       );
 
-      final recipientChatPageModel = ChatPageModel(
-        id: getRandomLettersAndDigits(),
-        chatBoxId: randInt,
-        chatRoomName: chatRoomName,
-        loggedInUser: selectedUser!,
-        userGettingMessage: widget.loggedInUser,
-        userGettingMessageIconUri: widget.loggedInUser.userPictureUri,
-        lastMessageSent: "",
-        lastMessageDate: DateTime.now(),
-      );
+      if (selectedUser!.userName != widget.loggedInUser.userName) {
+        final recipientChatPageModel = ChatPageModel(
+          id: getRandomLettersAndDigits(),
+          chatBoxId: randInt,
+          chatRoomName: chatRoomName,
+          loggedInUser: selectedUser!,
+          userGettingMessage: widget.loggedInUser,
+          userGettingMessageIconUri: widget.loggedInUser.userPictureUri,
+          lastMessageSent: "",
+          lastMessageDate: DateTime.now(),
+        );
+
+        await firebaseDb.addChatPage(recipientChatPageModel);
+      }
 
       await firebaseDb.addChatPage(chatPageModel);
-      await firebaseDb.addChatPage(recipientChatPageModel);
 
       setState(() {
         chatRooms.add(chatPageModel);

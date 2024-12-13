@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import '../../db/firestore_db.dart';
 import '../../models/user_model/user_model.dart';
 import '../main_page/main_page.dart';
@@ -15,14 +14,10 @@ class SettingsPage extends StatefulWidget {
 
 class SettingsPageState extends State<SettingsPage> {
   final TextEditingController userNameController = TextEditingController();
-  final FirebaseAuth auth = FirebaseAuth.instance;
   final FirebaseDb firebaseDb = FirebaseDb();
+  String selectedPictureUri = "";
 
-  String? userEmail;
-  UserModel? userModel;
-  String selectedPictureUri = "lib/img/user/womanAndCatProfilePic.jpg";
-
-  final List<String> pictureOptions = [
+  List<String> pictureOptions = [
     "lib/img/user/womanAndCatProfilePic.jpg",
     "lib/img/user/jellyfishProfilePic.jpg",
     "lib/img/user/architectureProfilePic.jpg",
@@ -33,93 +28,53 @@ class SettingsPageState extends State<SettingsPage> {
   @override
   void initState() {
     super.initState();
-    getCurrentUserEmail();
-    fetchUserData();
+    populateUserDetails();
   }
 
-  void getCurrentUserEmail() {
-    final user = auth.currentUser;
+  void populateUserDetails() {
     setState(() {
-      userEmail = user?.email;
+      pictureOptions = {
+        ...pictureOptions,
+        widget.loggedInUser.userPictureUri,
+      }.toList();
+      selectedPictureUri = widget.loggedInUser.userPictureUri;
+      userNameController.text = widget.loggedInUser.userName;
     });
   }
 
-  Future<void> fetchUserData() async {
-    if (auth.currentUser == null) return;
-
-    try {
-      final userId = auth.currentUser!.uid;
-      final fetchedUserModel = await firebaseDb.getUser(userId);
-
-      if (fetchedUserModel != null) {
-        setState(() {
-          userModel = fetchedUserModel;
-          userNameController.text = fetchedUserModel.userName;
-          selectedPictureUri = fetchedUserModel.userPictureUri;
-        });
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error fetching user data: ${e.toString()}")),
-      );
-    }
-  }
-
   Future<void> submitUserDetails() async {
-    if (userEmail == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("User email is not available. Please log in again.")),
-      );
-      return;
-    }
-
     final userName = userNameController.text.trim();
 
     if (userName.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Please fill in the username.")),
+        const SnackBar(content: Text("Please fill in the username.")),
       );
       return;
     }
 
     try {
-      final userId = auth.currentUser!.uid;
-      final userExists = await firebaseDb.checkIfUserExists(userId);
-
-      UserModel updatedUserModel = userModel!.copyWithNewSettingsFields(
+      final updatedUserModel = widget.loggedInUser.copyWithNewSettingsFields(
         userName: userName,
         userPictureUri: selectedPictureUri,
       );
 
-      if (userExists) {
-        // Update existing user
-        await firebaseDb.updateUser(updatedUserModel);
-      } else {
-        // Add new user
-        updatedUserModel = UserModel(
-          id: userId,
-          userId: DateTime.now().millisecondsSinceEpoch,
-          userEmail: userEmail!,
-          userName: userName,
-          userMoney: userModel?.userMoney ?? "0",
-          userPictureUri: selectedPictureUri,
-          registrationDatetime: DateTime.now(),
-        );
-        await firebaseDb.addUser(updatedUserModel);
-      }
+      await firebaseDb.updateUser(updatedUserModel);
+      await firebaseDb.updateUserModelInAllCollections(widget.loggedInUser.userId);
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(userExists ? "User details updated successfully!" :
-        "User added successfully!")),
+        const SnackBar(content: Text("User added successfully!")),
       );
+
       Navigator.of(context).push(
-        MaterialPageRoute(builder: (context) => MainPage(
-          loggedInUser: widget.loggedInUser,
-        )),
+        MaterialPageRoute(
+          builder: (context) => MainPage(
+            loggedInUser: updatedUserModel,
+          ),
+        ),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error updating user details: ${e.toString()}")),
+        SnackBar(content: Text("Error updating user details: $e")),
       );
     }
   }
@@ -134,7 +89,7 @@ class SettingsPageState extends State<SettingsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Settings"),
+        title: const Text("Settings"),
         centerTitle: true,
       ),
       body: Padding(
@@ -142,17 +97,17 @@ class SettingsPageState extends State<SettingsPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
 
             // Username Field
             TextField(
               controller: userNameController,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: "User Name",
                 border: OutlineInputBorder(),
               ),
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
 
             // Profile Picture Preview
             Center(
@@ -169,13 +124,13 @@ class SettingsPageState extends State<SettingsPage> {
                 ),
               ),
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
 
             // Picture Selector Dropdown
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text("Profile Picture:", style: TextStyle(fontSize: 16)),
+                const Text("Profile Picture:", style: TextStyle(fontSize: 16)),
                 DropdownButton<String>(
                   value: selectedPictureUri,
                   items: pictureOptions.map((String value) {
@@ -200,12 +155,12 @@ class SettingsPageState extends State<SettingsPage> {
                 ),
               ],
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
 
             Center(
               child: ElevatedButton(
                 onPressed: submitUserDetails,
-                child: Text("Submit"),
+                child: const Text("Submit"),
               ),
             ),
           ],

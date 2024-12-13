@@ -27,7 +27,7 @@ void main() async {
   final FirebaseDb firebaseDb = FirebaseDb();
 
   // Fetch the fake user with id user-999001
-  final UserModel? fakeUser = await firebaseDb.getUser("user-999004");
+  final UserModel? fakeUser = await firebaseDb.getUser("user-999001");
 
   if (fakeUser == null) {
     print("Fake user with ID 999001 not found in Firestore. Exiting...");
@@ -112,7 +112,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.deepPurple,
       ),
-      home: pages[10],
+      home: pages[0],
     );
   }
 }

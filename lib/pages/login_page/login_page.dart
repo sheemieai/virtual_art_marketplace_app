@@ -160,11 +160,11 @@ class LoginPageState extends State<LoginPage> {
         } else {
           final newUser = UserModel(
             id: userId,
-            userId: int.parse(userId.hashCode.toString().substring(0, 6)),
+            userId: int.parse(userId.hashCode.toString().substring(0, 8)),
             userEmail: email,
             userName: email.split("@")[0],
             userMoney: "0",
-            userPictureUri: "lib/img/user/jellyfishProfilePic.png",
+            userPictureUri: "lib/img/user/jellyfishProfilePic.jpg",
             registrationDatetime: DateTime.now(),
           );
 
@@ -307,6 +307,7 @@ class LoginPageState extends State<LoginPage> {
               style: TextStyle(color: Colors.red),
             ),
 
+            /*
             // Update fake user data
             ElevatedButton(
               onPressed: updateFakeDataArtUris,
@@ -316,6 +317,7 @@ class LoginPageState extends State<LoginPage> {
               ),
               child: const Text("Update Fake Data"),
             ),
+             */
           ],
         ),
       ),

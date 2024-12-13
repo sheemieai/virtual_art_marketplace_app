@@ -218,6 +218,28 @@ class FirebaseDb {
     }
   }
 
+  // Get all PurchaseArtModels by user id
+  Future<List<PurchaseArtModel>> getAllPurchasesByBuyerId(final int userId) async {
+    try {
+      QuerySnapshot snapshot = await purchaseArtCollection.get();
+
+      List<PurchaseArtModel> purchases = snapshot.docs
+          .map((doc) => PurchaseArtModel.fromFirestore(
+        doc.data() as Map<String, dynamic>,
+        doc.id,
+      ))
+          .where((purchase) => purchase.buyer.userId == userId)
+          .toList();
+
+      purchases.sort((a, b) => b.artWorkPurchaseDate.compareTo(a.artWorkPurchaseDate));
+
+      return purchases;
+    } catch (e) {
+      print("Error fetching purchases for buyer: $e");
+      return [];
+    }
+  }
+
   /**
    * Art Model Methods
    */
@@ -767,6 +789,88 @@ class FirebaseDb {
     } catch (e) {
       print("Error fetching art models for userId $userId: $e");
       throw Exception("Failed to fetch art models.");
+    }
+  }
+
+  /**
+   * All Collection Methods
+   */
+
+  // Updates the UserModel with the updated UserModel
+  Future<void> updateUserModelInAllCollections(final int userId) async {
+    try {
+      final querySnapshot = await usersCollection.where("userId", isEqualTo: userId).get();
+      if (querySnapshot.docs.isEmpty) {
+        throw Exception("User with ID $userId does not exist in \"users\" collection.");
+      }
+
+      final userDoc = querySnapshot.docs.first;
+      final updatedUserModel = UserModel.fromFirestore(
+        userDoc.data()! as Map<String, dynamic>,
+        userDoc.id,
+      );
+
+      final List<CollectionReference> collections = [
+        purchaseArtCollection,
+        artCollection,
+        chatPageCollection,
+        chatRoomCollection,
+        cartCollection,
+      ];
+
+      for (final collection in collections) {
+        final querySnapshot = await collection.get();
+
+        final batch = firestore.batch();
+
+        for (final doc in querySnapshot.docs) {
+          final data = doc.data() as Map<String, dynamic>;
+
+          if (collection == chatPageCollection) {
+            if (data["loggedInUser"] != null &&
+                data["loggedInUser"]["userId"] == userId) {
+              data["loggedInUser"] = updatedUserModel.toFirestore();
+            }
+            if (data["userGettingMessage"] != null &&
+                data["userGettingMessage"]["userId"] == userId) {
+              data["userGettingMessage"] = updatedUserModel.toFirestore();
+            }
+            if (data["chatRoomName"] == "Chat with me") {
+              data["userGettingMessageIconUri"] = updatedUserModel.userPictureUri;
+            }
+          } else if (collection == chatRoomCollection) {
+            if (data["loggedInUser"] != null &&
+                data["loggedInUser"]["userId"] == userId) {
+              data["loggedInUser"] = updatedUserModel.toFirestore();
+            }
+            if (data["userGettingMessage"] != null &&
+                data["userGettingMessage"]["userId"] == userId) {
+              data["userGettingMessage"] = updatedUserModel.toFirestore();
+            }
+          } else if (collection == cartCollection) {
+            if (data["user"] != null && data["user"]["userId"] == userId) {
+              data["user"] = updatedUserModel.toFirestore();
+            }
+          } else if (collection == artCollection) {
+            if (data["artWorkCreator"] != null &&
+                data["artWorkCreator"]["userId"] == userId) {
+              data["artWorkCreator"] = updatedUserModel.toFirestore();
+            }
+          } else if (collection == purchaseArtCollection) {
+            if (data["artModel"] != null &&
+                data["artModel"]["artWorkCreator"]["userId"] == userId) {
+              data["artModel"]["artWorkCreator"] = updatedUserModel.toFirestore();
+            }
+          }
+
+          batch.update(doc.reference, data);
+        }
+
+        await batch.commit();
+        print("All collections updated successfully with new user!");
+      }
+    } catch (e) {
+      throw Exception("Failed to update UserModel in all collections: $e");
     }
   }
 }

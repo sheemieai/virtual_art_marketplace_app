@@ -3,6 +3,7 @@ import 'package:virtual_marketplace_app/models/cart_model/cart_model.dart';
 import 'package:virtual_marketplace_app/pages/chat_page/chat_page.dart';
 import '../../../db/firestore_db.dart';
 import '../../../models/art_model/art_model.dart';
+import '../../../models/payment_model/purchase_art_model.dart';
 import '../../../models/user_model/user_model.dart';
 import '../../display_art_page/upload_art_page/upload_art_page.dart';
 import '../../favorite_page/favorite_page.dart';
@@ -24,6 +25,7 @@ class ShoppingCartPage extends StatefulWidget {
 class ShoppingCartPageState extends State<ShoppingCartPage> {
   final FirebaseDb firestoreDb = FirebaseDb();
   List<ArtModel> cartArtList = [];
+  List<PurchaseArtModel> purchasedArtList = [];
   int subtotal = 0;
   bool isLoading = true;
 
@@ -31,6 +33,20 @@ class ShoppingCartPageState extends State<ShoppingCartPage> {
   void initState() {
     super.initState();
     fetchCartItems();
+    fetchPurchasedItems();
+  }
+
+  Future<void> fetchPurchasedItems() async {
+    try {
+      final List<PurchaseArtModel> purchases =
+        await firestoreDb.getAllPurchasesByBuyerId(widget.loggedInUser.userId);
+
+      setState(() {
+        purchasedArtList = purchases.take(5).toList();
+      });
+    } catch (e) {
+      print("Error fetching purchased items: $e");
+    }
   }
 
   Future<void> fetchCartItems() async {
@@ -190,19 +206,6 @@ class ShoppingCartPageState extends State<ShoppingCartPage> {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.shopping_cart),
-              title: const Text("Cart"),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => ShoppingCartPage(
-                            loggedInUser: widget.loggedInUser,
-                          )),
-                );
-              },
-            ),
-            ListTile(
               leading: const Icon(Icons.chat),
               title: const Text("Chats"),
               onTap: () {
@@ -210,8 +213,8 @@ class ShoppingCartPageState extends State<ShoppingCartPage> {
                   context,
                   MaterialPageRoute(
                       builder: (context) => ChatsPage(
-                            loggedInUser: widget.loggedInUser,
-                          )),
+                        loggedInUser: widget.loggedInUser,
+                      )),
                 );
               },
             ),
@@ -223,8 +226,8 @@ class ShoppingCartPageState extends State<ShoppingCartPage> {
                   context,
                   MaterialPageRoute(
                       builder: (context) => UploadArtPage(
-                            loggedInUser: widget.loggedInUser,
-                          )),
+                        loggedInUser: widget.loggedInUser,
+                      )),
                 );
               },
             ),
@@ -258,58 +261,68 @@ class ShoppingCartPageState extends State<ShoppingCartPage> {
       body: Column(
         children: [
           Expanded(
-            child: cartArtList.isEmpty
-                ? const Center(child: Text("Your cart is empty."))
-                : ListView.builder(
-                    itemCount: cartArtList.length,
-                    itemBuilder: (context, index) {
-                      final item = cartArtList[index];
-                      return Container(
-                        margin: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.grey[300]!),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(8),
-                          child: Row(
-                            children: [
-                              Container(
-                                height: 100,
-                                width: 100,
-                                decoration: BoxDecoration(
-                                  border: Border.all(color: Colors.grey),
-                                  borderRadius: BorderRadius.circular(8.0),
-                                  image: DecorationImage(
-                                    image: AssetImage(item.artWorkPictureUri),
-                                    fit: BoxFit.cover,
+            child: Column(
+              children: [
+                if (cartArtList.isEmpty)
+                  const Center(child: Text("Your cart is empty."))
+                else
+                  Expanded(
+                    child: Scrollbar(
+                      thumbVisibility: true,
+                      child: ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: cartArtList.length,
+                        itemBuilder: (context, index) {
+                          final item = cartArtList[index];
+                          return Container(
+                            margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              border: Border.all(color: Colors.grey[300]!),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(8),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    height: 100,
+                                    width: 100,
+                                    decoration: BoxDecoration(
+                                      border: Border.all(color: Colors.grey),
+                                      borderRadius: BorderRadius.circular(8.0),
+                                      image: DecorationImage(
+                                        image: AssetImage(item.artWorkPictureUri),
+                                        fit: BoxFit.cover,
+                                      ),
+                                    ),
                                   ),
-                                ),
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(item.artWorkName,
+                                            style: const TextStyle(fontWeight: FontWeight.bold)),
+                                        Text(item.artPrice),
+                                      ],
+                                    ),
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.delete),
+                                    onPressed: () {
+                                      removeItemFromCart(index);
+                                    },
+                                  ),
+                                ],
                               ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(item.artWorkName,
-                                        style: const TextStyle(
-                                            fontWeight: FontWeight.bold)),
-                                    Text(item.artPrice),
-                                  ],
-                                ),
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.delete),
-                                onPressed: () {
-                                  removeItemFromCart(index);
-                                },
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
+                            ),
+                          );
+                        },
+                      ),
+                    ),
                   ),
+                buildPurchasedItemsSection(),
+              ],
+            ),
           ),
           Padding(
             padding: const EdgeInsets.all(16.0),
@@ -323,15 +336,15 @@ class ShoppingCartPageState extends State<ShoppingCartPage> {
                   onPressed: cartArtList.isEmpty
                       ? null
                       : () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => PaymentPage(
-                                loggedInUser: widget.loggedInUser,
-                              ),
-                            ),
-                          );
-                        },
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => PaymentPage(
+                          loggedInUser: widget.loggedInUser,
+                        ),
+                      ),
+                    );
+                  },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.black,
                     foregroundColor: Colors.white,
@@ -353,6 +366,61 @@ class ShoppingCartPageState extends State<ShoppingCartPage> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget buildPurchasedItemsSection() {
+    // Hide widget if no items
+    if (purchasedArtList.isEmpty) {
+      return const SizedBox();
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+          child: Text(
+            "Recently Purchased Items",
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+        ),
+        SizedBox(
+          height: 150,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: purchasedArtList.length,
+            itemBuilder: (context, index) {
+              final purchasedItem = purchasedArtList[index];
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                child: Column(
+                  children: [
+                    Container(
+                      width: 100,
+                      height: 100,
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey),
+                        borderRadius: BorderRadius.circular(8.0),
+                        image: DecorationImage(
+                          image: AssetImage(purchasedItem.artModel.artWorkPictureUri),
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      purchasedItem.artModel.artWorkName,
+                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 }

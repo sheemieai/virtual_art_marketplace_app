@@ -62,7 +62,7 @@ class MyArtPageState extends State<MyArtPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("My Art Page"),
+        title: const Text("My Art"),
         centerTitle: true,
       ),
       drawer: Drawer(
@@ -202,7 +202,7 @@ class MyArtPageState extends State<MyArtPage> {
                         child: randomArtModel == null
                             ? const Center(
                                 child: Text(
-                                  "Picture",
+                                  "No Picture Uploaded",
                                   style: TextStyle(
                                     fontSize: 18,
                                     color: Colors.black54,

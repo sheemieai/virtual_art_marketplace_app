@@ -113,6 +113,7 @@ class _PaymentPageState extends State<PaymentPage> {
           final purchaseArt = PurchaseArtModel(
             id: getRandomLettersAndDigits(),
             artModel: art,
+            buyer: widget.loggedInUser,
             artWorkPurchaseDate: DateTime.now(),
           );
 
