@@ -9,6 +9,8 @@ import 'package:virtual_marketplace_app/pages/login_page/login_page.dart';
 import 'package:virtual_marketplace_app/pages/main_page/main_page.dart';
 import 'package:virtual_marketplace_app/pages/my_art_page/my_art_page.dart';
 import 'package:virtual_marketplace_app/pages/payment_page/shopping_cart/shopping_cart_page.dart';
+import '../../helper/currency/currency_helper.dart';
+import '../../helper/currency/exchange_rate_helper.dart';
 import '../../models/cart_model/cart_model.dart';
 import '../display_art_page/display_art_page.dart';
 import '../settings_page/settings_page.dart';
@@ -29,6 +31,7 @@ class FavoriteArtPageState extends State<FavoriteArtPage> {
   bool isLoading = true;
   String errorMessage = "";
   String searchQuery = "";
+  final Map<String, double> exchangeRates = ExchangeRateHelper().exchangeRates;
 
   @override
   void initState() {
@@ -239,7 +242,7 @@ class FavoriteArtPageState extends State<FavoriteArtPage> {
               leading: const Icon(Icons.logout),
               title: const Text("Log Out"),
               onTap: () {
-                Navigator.push(
+                Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(builder: (context) => LoginPage()),
                 );
@@ -320,7 +323,11 @@ class FavoriteArtPageState extends State<FavoriteArtPage> {
                                             ),
                                           ),
                                           Text(
-                                            artModel.artPrice,
+                                            "${CurrencyHelper.convert(
+                                              double.tryParse(artModel.artPrice.replaceAll(RegExp(r'[^\d.]'), '')) ?? 0,
+                                              widget.loggedInUser.preferredCurrency ?? "USD",
+                                              exchangeRates,
+                                            ).toStringAsFixed(2)} ${widget.loggedInUser.preferredCurrency}",
                                             style: const TextStyle(
                                               fontSize: 16,
                                               color: Colors.grey,

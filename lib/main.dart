@@ -13,6 +13,7 @@ import 'package:virtual_marketplace_app/pages/payment_page/payment_page.dart';
 import 'package:virtual_marketplace_app/pages/payment_page/shopping_cart/shopping_cart_page.dart';
 import 'package:virtual_marketplace_app/pages/settings_page/settings_page.dart';
 import 'db/firestore_db.dart';
+import 'helper/currency/exchange_rate_helper.dart';
 import 'models/art_model/art_model.dart';
 import 'models/user_model/user_model.dart';
 import 'pages/login_page/login_page.dart';
@@ -26,6 +27,7 @@ void main() async {
 
   final FirebaseDb firebaseDb = FirebaseDb();
 
+  /*
   // Fetch the fake user with id user-999001
   final UserModel? fakeUser = await firebaseDb.getUser("user-999001");
 
@@ -34,17 +36,22 @@ void main() async {
     return;
   }
 
-  runApp(MyApp(fakeUser: fakeUser));
+   */
+
+  await ExchangeRateHelper().initializeExchangeRates("USD");
+
+  runApp(MyApp(/*fakeUser: fakeUser*/));
 }
 
 class MyApp extends StatelessWidget {
-  final UserModel fakeUser;
+  //final UserModel fakeUser;
 
-  MyApp({super.key, required this.fakeUser});
+  MyApp({super.key, /*required this.fakeUser*/});
 
   @override
   Widget build(BuildContext context) {
-    // List of pages
+    /*
+    // List of pages for testing
     final List<Widget> pages = [
       LoginPage(), // 0
       ChatsPage(loggedInUser: fakeUser), // 1
@@ -76,6 +83,7 @@ class MyApp extends StatelessWidget {
             userName: 'Vincent van Gogh',
             userMoney: '5000',
             userPictureUri: 'lib/img/user/photos/artist.jpg',
+            preferredCurrency: "USD",
             registrationDatetime: DateTime.now(),
           ),
           artDimensions: '50x60cm',
@@ -107,12 +115,18 @@ class MyApp extends StatelessWidget {
       ), // 10
     ];
 
+     */
+
+    final List<Widget> finalPages = [
+      LoginPage(),
+    ];
+
     return MaterialApp(
       title: "J-Arib Virtual Marketplace",
       theme: ThemeData(
         primarySwatch: Colors.deepPurple,
       ),
-      home: pages[0],
+      home: finalPages[0],
     );
   }
 }

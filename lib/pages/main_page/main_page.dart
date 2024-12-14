@@ -5,6 +5,8 @@ import 'package:virtual_marketplace_app/models/art_model/art_model.dart';
 import 'package:virtual_marketplace_app/models/user_model/user_model.dart';
 import 'package:virtual_marketplace_app/pages/favorite_page/favorite_page.dart';
 import 'package:virtual_marketplace_app/pages/my_art_page/my_art_page.dart';
+import '../../helper/currency/currency_helper.dart';
+import '../../helper/currency/exchange_rate_helper.dart';
 import '../chat_page/chat_page.dart';
 import '../display_art_page/display_art_page.dart';
 import '../display_art_page/upload_art_page/upload_art_page.dart';
@@ -28,6 +30,7 @@ class MainPageState extends State<MainPage> {
   Map<String, List<ArtModel>> categorizedArt = {};
   bool isLoading = true;
   String errorMessage = "";
+  final Map<String, double> exchangeRates = ExchangeRateHelper().exchangeRates;
 
   final List<String> artTypes = [
     "Photo",
@@ -196,7 +199,7 @@ class MainPageState extends State<MainPage> {
               leading: const Icon(Icons.logout),
               title: const Text("Log Out"),
               onTap: () {
-                Navigator.push(
+                Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(builder: (context) => LoginPage()),
                 );
@@ -312,7 +315,11 @@ class MainPageState extends State<MainPage> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            artModel.artPrice,
+                            "${CurrencyHelper.convert(
+                              double.tryParse(artModel.artPrice.replaceAll(RegExp(r'[^\d.]'), '')) ?? 0,
+                              widget.loggedInUser.preferredCurrency ?? "USD",
+                              exchangeRates,
+                            ).toStringAsFixed(2)} ${widget.loggedInUser.preferredCurrency}",
                             style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,

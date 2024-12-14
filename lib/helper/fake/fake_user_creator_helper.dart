@@ -76,6 +76,7 @@ class FakeUserCreatorHelper {
         userName: userName,
         userMoney: "1000000",
         userPictureUri: pictureUri,
+        preferredCurrency: "USD",
         registrationDatetime: DateTime.now(),
       ));
     }
@@ -143,7 +144,7 @@ class FakeUserCreatorHelper {
     return userArtMap;
   }
 
-  static String capitalize(String input) {
+  static String capitalize(final String input) {
     if (input.isEmpty) return input;
     return input[0].toUpperCase() + input.substring(1);
   }

@@ -15,6 +15,9 @@ import 'package:virtual_marketplace_app/pages/my_art_page/my_art_page.dart';
 import 'package:virtual_marketplace_app/pages/payment_page/shopping_cart/shopping_cart_page.dart';
 import 'package:virtual_marketplace_app/pages/settings_page/settings_page.dart';
 
+import '../../helper/currency/currency_helper.dart';
+import '../../helper/currency/exchange_rate_helper.dart';
+
 class DisplayArtPage extends StatefulWidget {
   final ArtModel passedArtModel;
   final UserModel loggedInUser;
@@ -29,6 +32,7 @@ class DisplayArtPage extends StatefulWidget {
 class DisplayArtPageState extends State<DisplayArtPage> {
   final FirebaseDb firebaseDb = FirebaseDb();
   final bool isUserArt = true;
+  final Map<String, double> exchangeRates = ExchangeRateHelper().exchangeRates;
 
   static String capitalize(String input) {
     if (input.isEmpty) return input;
@@ -212,7 +216,7 @@ class DisplayArtPageState extends State<DisplayArtPage> {
               leading: const Icon(Icons.logout),
               title: const Text("Log Out"),
               onTap: () {
-                Navigator.push(
+                Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(builder: (context) => LoginPage()),
                 );
@@ -284,7 +288,11 @@ class DisplayArtPageState extends State<DisplayArtPage> {
               ),
               const SizedBox(height: 8),
               Text(
-                'Price: ${widget.passedArtModel.artPrice}',
+                'Price: ${CurrencyHelper.convert(
+                  double.tryParse(widget.passedArtModel.artPrice.replaceAll(RegExp(r'[^\d.]'), '')) ?? 0,
+                  widget.loggedInUser.preferredCurrency ?? "USD",
+                  exchangeRates,
+                ).toStringAsFixed(2)} ${widget.loggedInUser.preferredCurrency}',
                 style: const TextStyle(
                   color: Colors.black,
                   fontSize: 16,

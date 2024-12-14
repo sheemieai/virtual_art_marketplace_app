@@ -13,6 +13,8 @@ import 'package:virtual_marketplace_app/pages/my_art_page/my_art_page.dart';
 import 'package:virtual_marketplace_app/pages/payment_page/shopping_cart/shopping_cart_page.dart';
 import 'package:virtual_marketplace_app/db/firestore_db.dart';
 
+import '../../helper/currency/currency_helper.dart';
+import '../../helper/currency/exchange_rate_helper.dart';
 import '../../models/cart_model/cart_model.dart';
 import '../settings_page/settings_page.dart';
 
@@ -32,6 +34,7 @@ class _PaymentPageState extends State<PaymentPage> {
   UserModel? currentUser;
   List<ArtModel> userArts = [];
   bool isLoading = false;
+  Map<String, double> exchangeRates = ExchangeRateHelper().exchangeRates;
 
   @override
   void initState() {
@@ -60,12 +63,20 @@ class _PaymentPageState extends State<PaymentPage> {
   }
 
   int calculateTotalPrice() {
-    return userArts.fold(
-      0,
-      (sum, item) =>
-          sum +
-          (int.tryParse(item.artPrice.replaceAll(RegExp(r'[^\d.]'), '')) ?? 0),
+    final double totalInUsd = userArts.fold(
+      0.0,
+          (sum, item) {
+        double originalPrice = double.tryParse(item.artPrice.replaceAll(RegExp(r'[^\d.]'), '')) ?? 0;
+        return sum + originalPrice;
+      },
     );
+
+    // Convert the total to the preferred currency
+    return CurrencyHelper.convert(
+      totalInUsd,
+      widget.loggedInUser.preferredCurrency ?? "USD",
+      exchangeRates,
+    ).toInt();
   }
 
   Future<void> addFunds() async {
@@ -288,7 +299,7 @@ class _PaymentPageState extends State<PaymentPage> {
               leading: const Icon(Icons.logout),
               title: const Text("Log Out"),
               onTap: () {
-                Navigator.push(
+                Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(builder: (context) => LoginPage()),
                 );
@@ -322,7 +333,11 @@ class _PaymentPageState extends State<PaymentPage> {
                       const SizedBox(height: 16),
                       Center(
                         child: Text(
-                          'Total: \$${totalPrice.toStringAsFixed(2)}',
+                          'Total: ${CurrencyHelper.convert(
+                            totalPrice.toDouble(),
+                            widget.loggedInUser.preferredCurrency ?? "USD",
+                            exchangeRates,
+                          ).toStringAsFixed(2)} ${widget.loggedInUser.preferredCurrency}',
                           style: const TextStyle(
                             fontSize: 22,
                             fontWeight: FontWeight.bold,
@@ -359,7 +374,13 @@ class _PaymentPageState extends State<PaymentPage> {
                                       fontWeight: FontWeight.bold),
                                 ),
                                 const SizedBox(height: 8),
-                                Text('Price: ${artItem.artPrice}'),
+                                Text(
+                                  'Price: ${CurrencyHelper.convert(
+                                    double.tryParse(artItem.artPrice.replaceAll(RegExp(r'[^\d.]'), '')) ?? 0,
+                                    widget.loggedInUser.preferredCurrency ?? "USD",
+                                    exchangeRates,
+                                  ).toStringAsFixed(2)} ${widget.loggedInUser.preferredCurrency}',
+                                ),
                                 Text('Dimensions: ${artItem.artDimensions}'),
                                 Text('Type: ${artItem.artType}'),
                               ],
@@ -385,7 +406,11 @@ class _PaymentPageState extends State<PaymentPage> {
                           color: Colors.grey[100],
                         ),
                         child: Text(
-                          '\$${currentBalance.toStringAsFixed(2)}',
+                          '${CurrencyHelper.convert(
+                            currentBalance.toDouble(),
+                            widget.loggedInUser.preferredCurrency ?? "USD",
+                            exchangeRates,
+                          ).toStringAsFixed(2)} ${widget.loggedInUser.preferredCurrency}',
                           style: const TextStyle(
                             fontSize: 16,
                             color: Colors.black,

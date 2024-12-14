@@ -10,6 +10,8 @@ import 'package:virtual_marketplace_app/pages/main_page/main_page.dart';
 import 'package:virtual_marketplace_app/pages/my_art_page/my_art_page.dart';
 import 'package:virtual_marketplace_app/pages/payment_page/shopping_cart/shopping_cart_page.dart';
 
+import '../../../helper/currency/currency_helper.dart';
+import '../../../helper/currency/exchange_rate_helper.dart';
 import '../../settings_page/settings_page.dart';
 
 class UploadArtPage extends StatefulWidget {
@@ -24,6 +26,7 @@ class _UploadArtPageState extends State<UploadArtPage> {
   final FirebaseDb firebaseDb = FirebaseDb();
   String? selectedImage;
   String selectedArtType = "photo";
+  final Map<String, double> exchangeRates = ExchangeRateHelper().exchangeRates;
 
   final TextEditingController artworkNameController = TextEditingController();
   final TextEditingController widthController = TextEditingController();
@@ -99,6 +102,18 @@ class _UploadArtPageState extends State<UploadArtPage> {
       return;
     }
 
+    // Convert the price back to USD before storing
+    final double enteredPrice = double.tryParse(priceController.text) ?? 0;
+    final double priceInUsd = CurrencyHelper.convert(
+      enteredPrice,
+      "USD",
+      createExchangeMap(widget.loggedInUser.preferredCurrency, exchangeRates),
+    );
+
+    final double roundedUsdPrice = double.parse(priceInUsd.toStringAsFixed(2));
+
+    final String formattedPriceInUsd = "\$${roundedUsdPrice.toStringAsFixed(2)}";
+
     final ArtModel model = ArtModel(
       id: "art-${widget.loggedInUser.userId}-${getRandomLettersAndDigits()}",
       artId: getRandomInteger(),
@@ -106,7 +121,7 @@ class _UploadArtPageState extends State<UploadArtPage> {
       artWorkName: artworkNameController.text,
       artWorkCreator: widget.loggedInUser,
       artDimensions: "${widthController.text}x${heightController.text}",
-      artPrice: "\$${priceController.text}",
+      artPrice: formattedPriceInUsd,
       artType: selectedArtType,
       artFavoriteStatusUserList: [],
     );
@@ -126,6 +141,21 @@ class _UploadArtPageState extends State<UploadArtPage> {
         builder: (context) => MainPage(loggedInUser: widget.loggedInUser),
       ),
     );
+  }
+
+  Map<String, double> createExchangeMap(final String preferredCurrency, final Map<String, double> baseRates) {
+    if (!baseRates.containsKey(preferredCurrency)) {
+      throw Exception("Preferred currency $preferredCurrency not available in baseRates.");
+    }
+
+    final double preferredCurrencyRate = baseRates[preferredCurrency]!;
+
+    // Create a new exchange map using the preferred currency as the base
+    final Map<String, double> exchangeMap = baseRates.map((currency, rate) {
+      return MapEntry(currency, rate / preferredCurrencyRate);
+    });
+
+    return exchangeMap;
   }
 
   String getRandomLettersAndDigits() {
@@ -246,7 +276,7 @@ class _UploadArtPageState extends State<UploadArtPage> {
               leading: const Icon(Icons.logout),
               title: const Text("Log Out"),
               onTap: () {
-                Navigator.push(
+                Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(builder: (context) => LoginPage()),
                 );

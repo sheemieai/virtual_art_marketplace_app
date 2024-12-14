@@ -100,6 +100,7 @@ class ArtModel {
               userName: "Artist $artId",
               userMoney: "0",
               userPictureUri: "lib/img/user_pic/default.png",
+              preferredCurrency: "USD",
               registrationDatetime: DateTime.now(),
             );
 

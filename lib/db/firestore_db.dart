@@ -580,6 +580,32 @@ class FirebaseDb {
     }
   }
 
+  // Get Currency Layer API Key
+  Future<String> fetchCurrencyLayerApiKey() async {
+    try {
+      final DocumentSnapshot documentSnapshot = await FirebaseFirestore.instance
+          .collection("apiKey")
+          .doc("1ebcJucWStZN1y9f7eQW")
+          .get();
+
+      if (documentSnapshot.exists) {
+        final data = documentSnapshot.data() as Map<String, dynamic>;
+        final apiKey = data["currencyLayer"];
+
+        if (apiKey != null && apiKey is String) {
+          return apiKey;
+        } else {
+          throw Exception("CurrencyLayer API key not found in the document.");
+        }
+      } else {
+        throw Exception("Document not found in Firestore.");
+      }
+    } catch (e) {
+    print("Error fetching CurrencyLayer API key: $e");
+    throw Exception("Failed to fetch CurrencyLayer API key.");
+    }
+  }
+
   // Store Fake Users with multiple Fake ArtModels
   Future<void> storeFakeUsersAndArtModels(final List<UserModel> userModels,
       final Map<UserModel, List<ArtModel>> userArtMap) async {

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:virtual_marketplace_app/models/cart_model/cart_model.dart';
 import 'package:virtual_marketplace_app/pages/chat_page/chat_page.dart';
 import '../../../db/firestore_db.dart';
+import '../../../helper/currency/currency_helper.dart';
+import '../../../helper/currency/exchange_rate_helper.dart';
 import '../../../models/art_model/art_model.dart';
 import '../../../models/payment_model/purchase_art_model.dart';
 import '../../../models/user_model/user_model.dart';
@@ -28,6 +30,7 @@ class ShoppingCartPageState extends State<ShoppingCartPage> {
   List<PurchaseArtModel> purchasedArtList = [];
   int subtotal = 0;
   bool isLoading = true;
+  final Map<String, double> exchangeRates = ExchangeRateHelper().exchangeRates;
 
   @override
   void initState() {
@@ -249,7 +252,7 @@ class ShoppingCartPageState extends State<ShoppingCartPage> {
               leading: const Icon(Icons.logout),
               title: const Text("Log Out"),
               onTap: () {
-                Navigator.push(
+                Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(builder: (context) => LoginPage()),
                 );
@@ -302,7 +305,13 @@ class ShoppingCartPageState extends State<ShoppingCartPage> {
                                       children: [
                                         Text(item.artWorkName,
                                             style: const TextStyle(fontWeight: FontWeight.bold)),
-                                        Text(item.artPrice),
+                                        Text(
+                                          "${CurrencyHelper.convert(
+                                            double.tryParse(item.artPrice.replaceAll(RegExp(r'[^\d.]'), '')) ?? 0,
+                                            widget.loggedInUser.preferredCurrency ?? "USD",
+                                            exchangeRates,
+                                          ).toStringAsFixed(2)} ${widget.loggedInUser.preferredCurrency}",
+                                        ),
                                       ],
                                     ),
                                   ),
@@ -329,9 +338,17 @@ class ShoppingCartPageState extends State<ShoppingCartPage> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text("Subtotal: \$${subtotal.toStringAsFixed(2)}",
-                    style: const TextStyle(
-                        fontSize: 18, fontWeight: FontWeight.bold)),
+                Text(
+                  "Subtotal: ${CurrencyHelper.convert(
+                    subtotal.toDouble(),
+                    widget.loggedInUser.preferredCurrency ?? "USD",
+                    exchangeRates,
+                  ).toStringAsFixed(2)} ${widget.loggedInUser.preferredCurrency}",
+                  style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold
+                  ),
+                ),
                 ElevatedButton(
                   onPressed: cartArtList.isEmpty
                       ? null

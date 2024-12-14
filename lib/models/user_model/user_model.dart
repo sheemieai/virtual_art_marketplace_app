@@ -7,6 +7,7 @@ class UserModel {
   String userName;
   String userMoney;
   String userPictureUri;
+  String preferredCurrency;
   DateTime registrationDatetime;
 
   UserModel({
@@ -16,6 +17,7 @@ class UserModel {
     required this.userName,
     required this.userMoney,
     required this.userPictureUri,
+    required this.preferredCurrency,
     required this.registrationDatetime,
   });
 
@@ -28,6 +30,7 @@ class UserModel {
       userName: data["userName"] ?? "",
       userMoney: data["userMoney"] ?? "",
       userPictureUri: data["userPictureUri"] ?? "",
+      preferredCurrency: data["preferredCurrency"] ?? "",
       registrationDatetime: data["registrationDatetime"] != null
           ? (data["registrationDatetime"] as Timestamp).toDate()
           : DateTime.now(),
@@ -42,6 +45,7 @@ class UserModel {
       "userName": userName,
       "userMoney": userMoney,
       "userPictureUri": userPictureUri,
+      "preferredCurrency": preferredCurrency,
       "registrationDatetime": registrationDatetime,
     };
   }
@@ -50,6 +54,7 @@ class UserModel {
   UserModel copyWithNewSettingsFields({
     String? userName,
     String? userPictureUri,
+    String? preferredCurrency,
   }) {
     return UserModel(
       id: id,
@@ -58,6 +63,7 @@ class UserModel {
       userName: userName ?? this.userName,
       userMoney: userMoney,
       userPictureUri: userPictureUri ?? this.userPictureUri,
+      preferredCurrency: preferredCurrency ?? this.preferredCurrency,
       registrationDatetime: registrationDatetime,
     );
   }

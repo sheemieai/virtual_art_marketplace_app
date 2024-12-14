@@ -165,6 +165,7 @@ class LoginPageState extends State<LoginPage> {
             userName: email.split("@")[0],
             userMoney: "0",
             userPictureUri: "lib/img/user/jellyfishProfilePic.jpg",
+            preferredCurrency: "USD",
             registrationDatetime: DateTime.now(),
           );
 
