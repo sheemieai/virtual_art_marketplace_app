@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -37,6 +38,7 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
   String _formatTime(DateTime time) {
     return DateFormat('hh:mm a').format(time);
   }
+  Timer? _refreshTimer;
 
   ChatRoomModel? _chatRoomModel;
 
@@ -44,6 +46,29 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
   void initState() {
     super.initState();
     _fetchChatRoom();
+    _startAutoRefresh();
+  }
+
+  // Function to start the auto-refresh
+  void _startAutoRefresh() {
+    _refreshTimer = Timer.periodic(const Duration(milliseconds: 200), (timer) async {
+      await _refreshMessages();
+    });
+  }
+
+  // Function to fetch the latest messages and refresh the list
+  Future<void> _refreshMessages() async {
+    if (_chatRoomModel == null) return;
+
+    final ChatRoomModel? updatedChatRoom = await firebaseDb
+        .getChatRoomByChatBoxId(_chatRoomModel!.chatBoxId);
+
+    if (updatedChatRoom != null &&
+        updatedChatRoom.messageList.length != messagesList.length) {
+      setState(() {
+        messagesList = updatedChatRoom.messageList;
+      });
+    }
   }
 
   // Send Message method
@@ -139,6 +164,7 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
   @override
   void dispose() {
     _messageController.dispose();
+    _refreshTimer?.cancel();
     super.dispose();
   }
 
