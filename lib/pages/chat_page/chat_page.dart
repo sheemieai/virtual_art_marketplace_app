@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -28,11 +29,20 @@ class _ChatsPageState extends State<ChatsPage> {
   final FirebaseDb firebaseDb = FirebaseDb();
   UserModel? selectedUser;
   ChatPageModel? selectedChatPage;
+  Timer? _refreshTimer;
 
   @override
   void initState() {
     super.initState();
     _loadChatRooms();
+    _startAutoRefresh();
+  }
+
+  // Function to start the auto-refresh
+  void _startAutoRefresh() {
+    _refreshTimer = Timer.periodic(const Duration(milliseconds: 200), (_) {
+      _loadChatRooms();
+    });
   }
 
   Future<void> _loadChatRooms() async {
@@ -162,6 +172,12 @@ class _ChatsPageState extends State<ChatsPage> {
             passedChatPage: selectedChatPage!),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _refreshTimer?.cancel();
+    super.dispose();
   }
 
   @override
